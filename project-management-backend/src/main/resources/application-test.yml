@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:projectmanagement_test}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+  flyway:
+    enabled: false
+
+app:
+  jwt-secret: test-secret-key-for-unit-tests-only-not-for-production
+  jwt-expiration: 3600000
+  refresh-token-expiration: 86400000
+  frontend-url: http://localhost:3000
