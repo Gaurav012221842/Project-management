@@ -13,14 +13,14 @@ import com.projectmanagement.entity.Project;
 import com.projectmanagement.entity.User;
 import com.projectmanagement.exception.custom
     .ResourceNotFoundException;
-import com.projectmanagement.exception.custom
-    .UnauthorizedException;
 import com.projectmanagement.repository
     .MessageRepository;
 import com.projectmanagement.repository
     .ProjectRepository;
 import com.projectmanagement.repository
     .UserRepository;
+import com.projectmanagement.service.interfaces
+    .IFileStorageService;
 import com.projectmanagement.service.interfaces
     .IMessageService;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +44,7 @@ public class MessageServiceImpl
     private final MessageRepository messageRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository    userRepository;
+    private final IFileStorageService fileStorageService;
 
     // ============================
     // Send Message
@@ -198,14 +199,14 @@ public class MessageServiceImpl
             .id(message.getId())
             .content(message.getContent())
             .messageType(message.getType())
-            .fileUrl(message.getFileUrl())
+            .fileUrl(fileStorageService.resolveFileUrl(message.getFileUrl()))
             .workspaceId(message.getWorkspace().getId())
             .sender(
                 UserResponse.builder()
                     .id(sender.getId())
                     .name(sender.getName())
                     .email(sender.getEmail())
-                    .profilePic(sender.getProfilePic())
+                    .profilePic(fileStorageService.resolveFileUrl(sender.getProfilePic()))
                     .build()
             )
             .isOwn(

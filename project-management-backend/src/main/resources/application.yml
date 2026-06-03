@@ -87,10 +87,11 @@ jwt:
 aws:
   access-key-id: ${AWS_ACCESS_KEY_ID:}
   secret-access-key: ${AWS_SECRET_ACCESS_KEY:}
-  region: ${AWS_REGION:ap-south-1}
-  s3-bucket: ${AWS_BUCKET_NAME:project-management-bucket}
+  region: ${AWS_REGION:eu-north-1}
+  endpoint: ${AWS_S3_ENDPOINT:}
+  s3-bucket: ${AWS_S3_BUCKET:${AWS_BUCKET_NAME:project-management-uploads}}
   s3:
-    bucket-name: ${AWS_BUCKET_NAME:project-management-bucket}
+    bucket-name: ${AWS_S3_BUCKET:${AWS_BUCKET_NAME:project-management-uploads}}
 
 # OpenAI
 openai:

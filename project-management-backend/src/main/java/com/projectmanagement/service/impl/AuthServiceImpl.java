@@ -2,12 +2,12 @@ package com.projectmanagement.service.impl;
 
 import com.projectmanagement.dto.request.auth.*;
 import com.projectmanagement.dto.response.auth.AuthResponse;
-import com.projectmanagement.dto.response.user.UserResponse;
 import com.projectmanagement.entity.User;
 import com.projectmanagement.exception.custom.*;
 import com.projectmanagement.repository.UserRepository;
 import com.projectmanagement.security.JwtService;
 import com.projectmanagement.service.interfaces.IAuthService;
+import com.projectmanagement.service.interfaces.IFileStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,6 +26,7 @@ public class AuthServiceImpl implements IAuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authManager;
     private final EmailServiceImpl emailService;
+    private final IFileStorageService fileStorageService;
 
     @Override
     @Transactional
@@ -80,7 +81,7 @@ public class AuthServiceImpl implements IAuthService {
                 .id(savedUser.getId().toString())
                 .email(savedUser.getEmail())
                 .fullName(savedUser.getName())
-                .avatarUrl(savedUser.getProfilePic())
+                .avatarUrl(fileStorageService.resolveFileUrl(savedUser.getProfilePic()))
                 .role(savedUser.getRole().name())
                 .build())
             .build();
@@ -123,7 +124,7 @@ public class AuthServiceImpl implements IAuthService {
                 .id(user.getId().toString())
                 .email(user.getEmail())
                 .fullName(user.getName())
-                .avatarUrl(user.getProfilePic())
+                .avatarUrl(fileStorageService.resolveFileUrl(user.getProfilePic()))
                 .role(user.getRole().name())
                 .build())
             .build();
@@ -168,7 +169,7 @@ public class AuthServiceImpl implements IAuthService {
                 .id(user.getId().toString())
                 .email(user.getEmail())
                 .fullName(user.getName())
-                .avatarUrl(user.getProfilePic())
+                .avatarUrl(fileStorageService.resolveFileUrl(user.getProfilePic()))
                 .role(user.getRole().name())
                 .build())
             .build();

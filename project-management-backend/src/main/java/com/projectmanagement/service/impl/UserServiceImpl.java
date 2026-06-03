@@ -15,6 +15,7 @@ import com.projectmanagement.repository.ProjectRepository;
 import com.projectmanagement.repository.SprintRepository;
 import com.projectmanagement.repository.TaskRepository;
 import com.projectmanagement.repository.UserRepository;
+import com.projectmanagement.service.interfaces.IFileStorageService;
 import com.projectmanagement.service.interfaces.IUserService;
 import com.projectmanagement.enums.SprintStatus;
 import com.projectmanagement.enums.TaskStatus;
@@ -39,17 +40,22 @@ public class UserServiceImpl implements IUserService {
     private final CommentRepository commentRepository;
     private final ActivityLogRepository activityLogRepository;
     private final SprintRepository sprintRepository;
+    private final IFileStorageService fileStorageService;
 
     @Override
     public UserResponse getCurrentUser(User user) {
-        return userMapper.toResponse(user);
+        UserResponse response = userMapper.toResponse(user);
+        response.setProfilePic(fileStorageService.resolveFileUrl(response.getProfilePic()));
+        return response;
     }
 
     @Override
     public UserResponse getUserById(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-        return userMapper.toResponse(user);
+        UserResponse response = userMapper.toResponse(user);
+        response.setProfilePic(fileStorageService.resolveFileUrl(response.getProfilePic()));
+        return response;
     }
 
     @Override
@@ -57,7 +63,9 @@ public class UserServiceImpl implements IUserService {
     public UserResponse updateProfile(User user, String fullName, String avatarUrl) {
         if (fullName != null) user.setName(fullName);
         if (avatarUrl != null) user.setProfilePic(avatarUrl);
-        return userMapper.toResponse(userRepository.save(user));
+        UserResponse response = userMapper.toResponse(userRepository.save(user));
+        response.setProfilePic(fileStorageService.resolveFileUrl(response.getProfilePic()));
+        return response;
     }
 
     @Override
@@ -153,7 +161,7 @@ public class UserServiceImpl implements IUserService {
                 .map(user -> UserSummaryResponse.builder()
                         .id(user.getId())
                         .name(user.getName())
-                        .profilePic(user.getProfilePic())
+                        .profilePic(fileStorageService.resolveFileUrl(user.getProfilePic()))
                         .build())
                 .toList();
     }
