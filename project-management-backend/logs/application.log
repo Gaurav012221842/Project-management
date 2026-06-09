@@ -1274,3 +1274,494 @@ Identify and stop the process that's listening on port 8080 or configure this ap
 2026-06-10 03:55:18 [restartedMain] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPoolPM - Added connection org.postgresql.jdbc.PgConnection@672c0521
 2026-06-10 03:55:18 [restartedMain] INFO  com.zaxxer.hikari.HikariDataSource - HikariPoolPM - Start completed.
 2026-06-10 03:55:19 [restartedMain] INFO  org.flywaydb.core.FlywayExecutor - Database: jdbc:postgresql://ep-plain-mode-ap5v0bae.c-7.us-east-1.aws.neon.tech:5432/neondb (PostgreSQL 18.4)
+2026-06-10 03:55:21 [restartedMain] WARN  o.f.c.i.database.base.Database - Flyway upgrade recommended: PostgreSQL 18.4 is newer than this version of Flyway and support has not been tested. The latest supported version of PostgreSQL is 15.
+2026-06-10 03:55:22 [restartedMain] INFO  o.f.core.internal.command.DbValidate - Successfully validated 9 migrations (execution time 00:00.938s)
+2026-06-10 03:55:25 [restartedMain] INFO  o.f.core.internal.command.DbMigrate - Current version of schema "public": 9
+2026-06-10 03:55:25 [restartedMain] INFO  o.f.core.internal.command.DbMigrate - Schema "public" is up to date. No migration necessary.
+2026-06-10 03:55:27 [restartedMain] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-06-10 03:55:27 [restartedMain] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2026-06-10 03:55:27 [restartedMain] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-06-10 03:55:27 [restartedMain] WARN  org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-06-10 03:55:28 [restartedMain] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-06-10 03:55:28 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists activity_logs 
+       drop constraint if exists FKavkl7v9l6yfc9hhpaqi1q6f5u
+2026-06-10 03:55:28 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists activity_logs 
+       drop constraint if exists FK5bm1lt4f4eevt8lv2517soakd
+2026-06-10 03:55:28 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists attachments 
+       drop constraint if exists FKq4u9ne3x0xtpc5d2jdddv1ii7
+2026-06-10 03:55:28 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists attachments 
+       drop constraint if exists FKl3qeaqe1mykgrd4ltgmqthdkp
+2026-06-10 03:55:29 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists comments 
+       drop constraint if exists FK8omq0tc18jd43bu5tjh6jvraq
+2026-06-10 03:55:29 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists comments 
+       drop constraint if exists FKlri30okf66phtcgbe5pok7cc0
+2026-06-10 03:55:29 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists comments 
+       drop constraint if exists FKi7pp0331nbiwd2844kg78kfwb
+2026-06-10 03:55:29 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists labels 
+       drop constraint if exists FK3sxl6x5sa83ojn87msxofr650
+2026-06-10 03:55:29 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists messages 
+       drop constraint if exists FK4ui4nnwntodh6wjvck53dbk9m
+2026-06-10 03:55:30 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists messages 
+       drop constraint if exists FK31v0eu0kks5tp34l1p11290ox
+2026-06-10 03:55:30 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists notifications 
+       drop constraint if exists FK9y21adhxn0ayjhfocscqox7bh
+2026-06-10 03:55:30 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists project_members 
+       drop constraint if exists FKdki1sp2homqsdcvqm9yrix31g
+2026-06-10 03:55:30 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists project_members 
+       drop constraint if exists FKgul2el0qjk5lsvig3wgajwm77
+2026-06-10 03:55:31 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists projects 
+       drop constraint if exists FKmueqy6cpcwpfl8gnnag4idjt9
+2026-06-10 03:55:31 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists projects 
+       drop constraint if exists FKpc7qv7bnsq7dm17g0tb0a60of
+2026-06-10 03:55:31 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists sprints 
+       drop constraint if exists FKke5a9e380ibc0xugykeqaktp4
+2026-06-10 03:55:31 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists sub_tasks 
+       drop constraint if exists FKmh50dclgqo55i4tjct1xjb8vp
+2026-06-10 03:55:32 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists task_labels 
+       drop constraint if exists FKlr49cbsj797rym78wepiid0sh
+2026-06-10 03:55:32 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists task_labels 
+       drop constraint if exists FK7wi3dfqb8gx9kiysuy980sbus
+2026-06-10 03:55:32 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists tasks 
+       drop constraint if exists FK2vjo8mbre3rvpbd6e7976b54m
+2026-06-10 03:55:32 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists tasks 
+       drop constraint if exists FKsfhn82y57i3k9uxww1s007acc
+2026-06-10 03:55:33 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists tasks 
+       drop constraint if exists FKbvjdsa9y725wovwlq4sjhodyk
+2026-06-10 03:55:33 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists tasks 
+       drop constraint if exists FKl5ac6kwptw5o73haren9qnkav
+2026-06-10 03:55:33 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists workspace_members 
+       drop constraint if exists FK6vtnpc3eexk504u61uepn40p1
+2026-06-10 03:55:33 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists workspace_members 
+       drop constraint if exists FKw9hq87n3rvq2c4j47qo78i5r
+2026-06-10 03:55:34 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists workspaces 
+       drop constraint if exists FK58ks96jjlsbhsh21cen7hr59h
+2026-06-10 03:55:34 [restartedMain] DEBUG org.hibernate.SQL - 
+    drop table if exists activity_logs cascade
+2026-06-10 03:55:34 [restartedMain] DEBUG org.hibernate.SQL - 
+    drop table if exists attachments cascade
+2026-06-10 03:55:34 [restartedMain] DEBUG org.hibernate.SQL - 
+    drop table if exists comments cascade
+2026-06-10 03:55:34 [restartedMain] DEBUG org.hibernate.SQL - 
+    drop table if exists labels cascade
+2026-06-10 03:55:35 [restartedMain] DEBUG org.hibernate.SQL - 
+    drop table if exists messages cascade
+2026-06-10 03:55:35 [restartedMain] DEBUG org.hibernate.SQL - 
+    drop table if exists notifications cascade
+2026-06-10 03:55:35 [restartedMain] DEBUG org.hibernate.SQL - 
+    drop table if exists project_members cascade
+2026-06-10 03:55:35 [restartedMain] DEBUG org.hibernate.SQL - 
+    drop table if exists projects cascade
+2026-06-10 03:55:36 [restartedMain] DEBUG org.hibernate.SQL - 
+    drop table if exists sprints cascade
+2026-06-10 03:55:36 [restartedMain] DEBUG org.hibernate.SQL - 
+    drop table if exists sub_tasks cascade
+2026-06-10 03:55:36 [restartedMain] DEBUG org.hibernate.SQL - 
+    drop table if exists task_labels cascade
+2026-06-10 03:55:36 [restartedMain] DEBUG org.hibernate.SQL - 
+    drop table if exists tasks cascade
+2026-06-10 03:55:37 [restartedMain] DEBUG org.hibernate.SQL - 
+    drop table if exists users cascade
+2026-06-10 03:55:37 [restartedMain] DEBUG org.hibernate.SQL - 
+    drop table if exists workspace_members cascade
+2026-06-10 03:55:37 [restartedMain] DEBUG org.hibernate.SQL - 
+    drop table if exists workspaces cascade
+2026-06-10 03:55:37 [restartedMain] DEBUG org.hibernate.SQL - 
+    create table activity_logs (
+        created_at timestamp(6) not null,
+        updated_at timestamp(6),
+        id uuid not null,
+        project_id uuid not null,
+        user_id uuid not null,
+        action varchar(255) not null,
+        created_by varchar(255),
+        entity_id varchar(255) not null,
+        entity_type varchar(255) not null,
+        new_value TEXT,
+        old_value TEXT,
+        updated_by varchar(255),
+        primary key (id)
+    )
+2026-06-10 03:55:38 [restartedMain] DEBUG org.hibernate.SQL - 
+    create table attachments (
+        created_at timestamp(6) not null,
+        file_size bigint,
+        updated_at timestamp(6),
+        id uuid not null,
+        task_id uuid not null,
+        uploaded_by uuid not null,
+        created_by varchar(255),
+        file_name varchar(255) not null,
+        file_type varchar(255),
+        file_url varchar(255) not null,
+        updated_by varchar(255),
+        primary key (id)
+    )
+2026-06-10 03:55:38 [restartedMain] DEBUG org.hibernate.SQL - 
+    create table comments (
+        created_at timestamp(6) not null,
+        updated_at timestamp(6),
+        id uuid not null,
+        parent_id uuid,
+        task_id uuid not null,
+        user_id uuid not null,
+        content TEXT not null,
+        created_by varchar(255),
+        updated_by varchar(255),
+        primary key (id)
+    )
+2026-06-10 03:55:38 [restartedMain] DEBUG org.hibernate.SQL - 
+    create table labels (
+        id uuid not null,
+        project_id uuid not null,
+        color varchar(255) not null,
+        name varchar(255) not null,
+        primary key (id)
+    )
+2026-06-10 03:55:38 [restartedMain] DEBUG org.hibernate.SQL - 
+    create table messages (
+        created_at timestamp(6) not null,
+        updated_at timestamp(6),
+        id uuid not null,
+        sender_id uuid not null,
+        workspace_id uuid not null,
+        content TEXT not null,
+        created_by varchar(255),
+        file_url varchar(255),
+        type varchar(255) check (type in ('TEXT','FILE','IMAGE')),
+        updated_by varchar(255),
+        primary key (id)
+    )
+2026-06-10 03:55:39 [restartedMain] DEBUG org.hibernate.SQL - 
+    create table notifications (
+        is_read boolean,
+        created_at timestamp(6) not null,
+        updated_at timestamp(6),
+        id uuid not null,
+        user_id uuid not null,
+        created_by varchar(255),
+        message TEXT not null,
+        reference_id varchar(255),
+        reference_type varchar(255),
+        title varchar(255) not null,
+        type varchar(255) not null check (type in ('TASK_ASSIGNED','COMMENT_ADDED','TASK_UPDATED','SPRINT_STARTED','MENTION','DEADLINE_REMINDER')),
+        updated_by varchar(255),
+        primary key (id)
+    )
+2026-06-10 03:55:39 [restartedMain] DEBUG org.hibernate.SQL - 
+    create table project_members (
+        created_at timestamp(6) not null,
+        updated_at timestamp(6),
+        id uuid not null,
+        project_id uuid not null,
+        user_id uuid not null,
+        created_by varchar(255),
+        role varchar(255) check (role in ('ADMIN','MANAGER','DEVELOPER','TESTER')),
+        updated_by varchar(255),
+        primary key (id),
+        unique (project_id, user_id)
+    )
+2026-06-10 03:55:39 [restartedMain] DEBUG org.hibernate.SQL - 
+    create table projects (
+        end_date date,
+        start_date date,
+        created_at timestamp(6) not null,
+        updated_at timestamp(6),
+        id uuid not null,
+        owner_id uuid not null,
+        workspace_id uuid not null,
+        created_by varchar(255),
+        description TEXT,
+        name varchar(255) not null,
+        status varchar(255) not null check (status in ('ACTIVE','COMPLETED','ON_HOLD','CANCELLED')),
+        updated_by varchar(255),
+        primary key (id)
+    )
+2026-06-10 03:55:39 [restartedMain] DEBUG org.hibernate.SQL - 
+    create table sprints (
+        end_date date not null,
+        start_date date not null,
+        created_at timestamp(6) not null,
+        updated_at timestamp(6),
+        id uuid not null,
+        project_id uuid not null,
+        created_by varchar(255),
+        goal TEXT,
+        name varchar(255) not null,
+        status varchar(255) check (status in ('PLANNED','ACTIVE','COMPLETED')),
+        updated_by varchar(255),
+        primary key (id)
+    )
+2026-06-10 03:55:40 [restartedMain] DEBUG org.hibernate.SQL - 
+    create table sub_tasks (
+        is_completed boolean,
+        created_at timestamp(6) not null,
+        updated_at timestamp(6),
+        id uuid not null,
+        task_id uuid not null,
+        created_by varchar(255),
+        title varchar(255) not null,
+        updated_by varchar(255),
+        primary key (id)
+    )
+2026-06-10 03:55:40 [restartedMain] DEBUG org.hibernate.SQL - 
+    create table task_labels (
+        created_at timestamp(6) not null,
+        updated_at timestamp(6),
+        id uuid not null,
+        label_id uuid not null,
+        task_id uuid not null,
+        created_by varchar(255),
+        updated_by varchar(255),
+        primary key (id),
+        unique (task_id, label_id)
+    )
+2026-06-10 03:55:40 [restartedMain] DEBUG org.hibernate.SQL - 
+    create table tasks (
+        due_date date,
+        position integer,
+        story_points integer,
+        created_at timestamp(6) not null,
+        updated_at timestamp(6),
+        assigned_to uuid,
+        id uuid not null,
+        project_id uuid not null,
+        reporter_id uuid not null,
+        sprint_id uuid,
+        created_by varchar(255),
+        description TEXT,
+        priority varchar(255) not null check (priority in ('LOW','MEDIUM','HIGH','CRITICAL')),
+        status varchar(255) not null check (status in ('TODO','IN_PROGRESS','IN_REVIEW','DONE')),
+        task_type varchar(255) not null check (task_type in ('FEATURE','BUG','IMPROVEMENT','TASK')),
+        title varchar(255) not null,
+        updated_by varchar(255),
+        primary key (id)
+    )
+2026-06-10 03:55:40 [restartedMain] DEBUG org.hibernate.SQL - 
+    create table users (
+        is_active boolean,
+        is_email_verified boolean,
+        created_at timestamp(6) not null,
+        updated_at timestamp(6),
+        id uuid not null,
+        created_by varchar(255),
+        email varchar(255) not null unique,
+        name varchar(255) not null,
+        password varchar(255) not null,
+        profile_pic varchar(255),
+        refresh_token varchar(255),
+        role varchar(255) not null check (role in ('ADMIN','MANAGER','DEVELOPER','TESTER')),
+        updated_by varchar(255),
+        primary key (id)
+    )
+2026-06-10 03:55:41 [restartedMain] DEBUG org.hibernate.SQL - 
+    create table workspace_members (
+        created_at timestamp(6) not null,
+        joined_at timestamp(6),
+        updated_at timestamp(6),
+        id uuid not null,
+        user_id uuid not null,
+        workspace_id uuid not null,
+        created_by varchar(255),
+        role varchar(255) check (role in ('OWNER','ADMIN','MEMBER')),
+        updated_by varchar(255),
+        primary key (id),
+        unique (workspace_id, user_id)
+    )
+2026-06-10 03:55:41 [restartedMain] DEBUG org.hibernate.SQL - 
+    create table workspaces (
+        created_at timestamp(6) not null,
+        updated_at timestamp(6),
+        id uuid not null,
+        owner_id uuid not null,
+        name varchar(100) not null,
+        slug varchar(100) not null unique,
+        logo_url varchar(500),
+        created_by varchar(255),
+        description TEXT,
+        updated_by varchar(255),
+        primary key (id)
+    )
+2026-06-10 03:55:41 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists activity_logs 
+       add constraint FKavkl7v9l6yfc9hhpaqi1q6f5u 
+       foreign key (project_id) 
+       references projects
+2026-06-10 03:55:41 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists activity_logs 
+       add constraint FK5bm1lt4f4eevt8lv2517soakd 
+       foreign key (user_id) 
+       references users
+2026-06-10 03:55:41 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists attachments 
+       add constraint FKq4u9ne3x0xtpc5d2jdddv1ii7 
+       foreign key (task_id) 
+       references tasks
+2026-06-10 03:55:42 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists attachments 
+       add constraint FKl3qeaqe1mykgrd4ltgmqthdkp 
+       foreign key (uploaded_by) 
+       references users
+2026-06-10 03:55:42 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists comments 
+       add constraint FK8omq0tc18jd43bu5tjh6jvraq 
+       foreign key (user_id) 
+       references users
+2026-06-10 03:55:42 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists comments 
+       add constraint FKlri30okf66phtcgbe5pok7cc0 
+       foreign key (parent_id) 
+       references comments
+2026-06-10 03:55:42 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists comments 
+       add constraint FKi7pp0331nbiwd2844kg78kfwb 
+       foreign key (task_id) 
+       references tasks
+2026-06-10 03:55:43 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists labels 
+       add constraint FK3sxl6x5sa83ojn87msxofr650 
+       foreign key (project_id) 
+       references projects
+2026-06-10 03:55:43 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists messages 
+       add constraint FK4ui4nnwntodh6wjvck53dbk9m 
+       foreign key (sender_id) 
+       references users
+2026-06-10 03:55:43 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists messages 
+       add constraint FK31v0eu0kks5tp34l1p11290ox 
+       foreign key (workspace_id) 
+       references workspaces
+2026-06-10 03:55:43 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists notifications 
+       add constraint FK9y21adhxn0ayjhfocscqox7bh 
+       foreign key (user_id) 
+       references users
+2026-06-10 03:55:44 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists project_members 
+       add constraint FKdki1sp2homqsdcvqm9yrix31g 
+       foreign key (project_id) 
+       references projects
+2026-06-10 03:55:44 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists project_members 
+       add constraint FKgul2el0qjk5lsvig3wgajwm77 
+       foreign key (user_id) 
+       references users
+2026-06-10 03:55:44 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists projects 
+       add constraint FKmueqy6cpcwpfl8gnnag4idjt9 
+       foreign key (owner_id) 
+       references users
+2026-06-10 03:55:44 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists projects 
+       add constraint FKpc7qv7bnsq7dm17g0tb0a60of 
+       foreign key (workspace_id) 
+       references workspaces
+2026-06-10 03:55:45 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists sprints 
+       add constraint FKke5a9e380ibc0xugykeqaktp4 
+       foreign key (project_id) 
+       references projects
+2026-06-10 03:55:45 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists sub_tasks 
+       add constraint FKmh50dclgqo55i4tjct1xjb8vp 
+       foreign key (task_id) 
+       references tasks
+2026-06-10 03:55:45 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists task_labels 
+       add constraint FKlr49cbsj797rym78wepiid0sh 
+       foreign key (label_id) 
+       references labels
+2026-06-10 03:55:45 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists task_labels 
+       add constraint FK7wi3dfqb8gx9kiysuy980sbus 
+       foreign key (task_id) 
+       references tasks
+2026-06-10 03:55:46 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists tasks 
+       add constraint FK2vjo8mbre3rvpbd6e7976b54m 
+       foreign key (assigned_to) 
+       references users
+2026-06-10 03:55:46 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists tasks 
+       add constraint FKsfhn82y57i3k9uxww1s007acc 
+       foreign key (project_id) 
+       references projects
+2026-06-10 03:55:46 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists tasks 
+       add constraint FKbvjdsa9y725wovwlq4sjhodyk 
+       foreign key (reporter_id) 
+       references users
+2026-06-10 03:55:46 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists tasks 
+       add constraint FKl5ac6kwptw5o73haren9qnkav 
+       foreign key (sprint_id) 
+       references sprints
+2026-06-10 03:55:46 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists workspace_members 
+       add constraint FK6vtnpc3eexk504u61uepn40p1 
+       foreign key (user_id) 
+       references users
+2026-06-10 03:55:47 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists workspace_members 
+       add constraint FKw9hq87n3rvq2c4j47qo78i5r 
+       foreign key (workspace_id) 
+       references workspaces
+2026-06-10 03:55:47 [restartedMain] DEBUG org.hibernate.SQL - 
+    alter table if exists workspaces 
+       add constraint FK58ks96jjlsbhsh21cen7hr59h 
+       foreign key (owner_id) 
+       references users
+2026-06-10 03:55:47 [restartedMain] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-06-10 03:55:47 [restartedMain] DEBUG c.p.s.filter.JwtAuthenticationFilter - Filter 'jwtAuthenticationFilter' configured for use
+2026-06-10 03:55:47 [restartedMain] DEBUG c.p.s.filter.RateLimitingFilter - Filter 'rateLimitingFilter' configured for use
+2026-06-10 03:55:48 [restartedMain] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-06-10 03:55:49 [restartedMain] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 3 endpoint(s) beneath base path '/actuator'
+2026-06-10 03:55:49 [restartedMain] INFO  o.s.s.web.DefaultSecurityFilterChain - Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@2265d9ac, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@722fa1f8, org.springframework.security.web.context.SecurityContextHolderFilter@419e2a99, org.springframework.security.web.header.HeaderWriterFilter@b7b64d7, org.springframework.web.filter.CorsFilter@7e26349a, org.springframework.web.filter.CorsFilter@2fe82a43, org.springframework.security.web.authentication.logout.LogoutFilter@3c7bc42, com.projectmanagement.security.filter.JwtAuthenticationFilter@1ee57d43, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@55936db6, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@3904c01f, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@234c2eab, org.springframework.security.web.session.SessionManagementFilter@61438607, org.springframework.security.web.access.ExceptionTranslationFilter@7c56990c, org.springframework.security.web.access.intercept.AuthorizationFilter@2d354521]
+2026-06-10 03:55:49 [restartedMain] INFO  o.s.b.d.a.OptionalLiveReloadServer - LiveReload server is running on port 35729
+2026-06-10 03:55:49 [restartedMain] WARN  o.s.b.w.s.c.AnnotationConfigServletWebServerApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'
+2026-06-10 03:55:49 [restartedMain] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-06-10 03:55:49 [restartedMain] INFO  com.zaxxer.hikari.HikariDataSource - HikariPoolPM - Shutdown initiated...
+2026-06-10 03:55:51 [restartedMain] INFO  com.zaxxer.hikari.HikariDataSource - HikariPoolPM - Shutdown completed.
+2026-06-10 03:55:51 [restartedMain] INFO  o.s.b.a.l.ConditionEvaluationReportLogger - 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-06-10 03:55:51 [restartedMain] ERROR o.s.b.d.LoggingFailureAnalysisReporter - 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Web server failed to start. Port 8080 was already in use.
+
+Action:
+
+Identify and stop the process that's listening on port 8080 or configure this application to listen on another port.
+
