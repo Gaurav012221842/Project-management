@@ -7,8 +7,6 @@ COPY . .
 RUN chmod +x mvnw
 RUN ./mvnw clean package -DskipTests
 
-COPY target/*.jar app.jar
-
 EXPOSE 8080
 
-ENTRYPOINT ["java","-jar","app.jar"]
+CMD ["java","-jar","target/project-management-backend-1.0.0.jar"]
