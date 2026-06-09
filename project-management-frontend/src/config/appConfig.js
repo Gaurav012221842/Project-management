@@ -1,6 +1,6 @@
 // src/config/appConfig.js
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:9989'
-const WS_URL  = process.env.REACT_APP_WS_URL  || 'http://localhost:9989/ws'
+const API_URL = process.env.REACT_APP_API_URL || 'https://project-management-ac99.onrender.com/'
+const WS_URL  = process.env.REACT_APP_WS_URL  || 'https://project-management-ac99.onrender.com/ws'
 
 const appConfig = {
   apiUrl:       API_URL,
