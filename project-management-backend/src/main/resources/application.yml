@@ -99,6 +99,9 @@ openai:
   model: gpt-3.5-turbo
   max-tokens: 500
 
+app:
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}
+
 # Logging
 logging:
   level:
