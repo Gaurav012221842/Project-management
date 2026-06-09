@@ -35,9 +35,6 @@ public class S3Config {
                         .build())
                 .credentialsProvider(StaticCredentialsProvider.create(
                         AwsBasicCredentials.create(accessKeyId, secretAccessKey)));
-        System.out.println("Region: " + region);
-        System.out.println("Secret Access Key: " + secretAccessKey);
-        System.out.println("Access Key ID: " + accessKeyId);
         
 
         return builder.build();
