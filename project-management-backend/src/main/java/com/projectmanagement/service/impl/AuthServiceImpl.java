@@ -2,19 +2,30 @@ package com.projectmanagement.service.impl;
 
 import com.projectmanagement.dto.request.auth.*;
 import com.projectmanagement.dto.response.auth.AuthResponse;
+import com.projectmanagement.entity.PasswordResetToken;
 import com.projectmanagement.entity.User;
 import com.projectmanagement.exception.custom.*;
+import com.projectmanagement.repository.PasswordResetTokenRepository;
 import com.projectmanagement.repository.UserRepository;
 import com.projectmanagement.security.JwtService;
 import com.projectmanagement.service.interfaces.IAuthService;
 import com.projectmanagement.service.interfaces.IFileStorageService;
+import com.projectmanagement.utils.ValidationUtils;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.Optional;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +38,10 @@ public class AuthServiceImpl implements IAuthService {
     private final AuthenticationManager authManager;
     private final EmailServiceImpl emailService;
     private final IFileStorageService fileStorageService;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Value("${app.frontend-url:http://localhost:3000}")
+    private String frontendUrl;
 
     @Override
     @Transactional
@@ -37,9 +52,9 @@ public class AuthServiceImpl implements IAuthService {
             "Registering user with email: {}",
             request.getEmail()
         );
+        String email = normalizeEmail(request.getEmail());
 
-        if (userRepository.existsByEmail(
-                request.getEmail())) {
+        if (userRepository.existsByEmailIgnoreCase(email)) {
             throw new DuplicateResourceException(
                 "Email already registered"
             );
@@ -47,7 +62,7 @@ public class AuthServiceImpl implements IAuthService {
 
         User user = User.builder()
             .name(request.getName())
-            .email(request.getEmail())
+            .email(email)
             .password(passwordEncoder.encode(
                 request.getPassword()
             ))
@@ -89,20 +104,28 @@ public class AuthServiceImpl implements IAuthService {
 
     @Override
     public AuthResponse login(LoginRequest request) {
+        String email = normalizeEmail(request.getEmail());
         log.info(
             "Login attempt for: {}",
-            request.getEmail()
+            email
         );
+
+        Optional<User> loginUser = userRepository
+            .findByEmailIgnoreCase(email);
+
+        if (loginUser.isEmpty()) {
+            log.warn("Login failed: no user found for email: {}", email);
+        }
 
         authManager.authenticate(
             new UsernamePasswordAuthenticationToken(
-                request.getEmail(),
+                email,
                 request.getPassword()
             )
         );
 
         User user = userRepository
-            .findByEmail(request.getEmail())
+            .findByEmailIgnoreCase(email)
             .orElseThrow(() -> 
                 new ResourceNotFoundException(
                     "User not found"
@@ -138,9 +161,10 @@ public class AuthServiceImpl implements IAuthService {
         String email = jwtService.extractUsername(
             request.getRefreshToken()
         );
+        String normalizedEmail = normalizeEmail(email);
 
         User user = userRepository
-            .findByEmail(email)
+            .findByEmailIgnoreCase(normalizedEmail)
             .orElseThrow(() -> 
                 new ResourceNotFoundException(
                     "User not found"
@@ -173,5 +197,87 @@ public class AuthServiceImpl implements IAuthService {
                 .role(user.getRole().name())
                 .build())
             .build();
+    }
+    @Override
+    @Transactional
+    public void forgotPassword(String email){
+        String normalizedEmail = normalizeEmail(email);
+        User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
+            .orElse(null);
+
+        if (user == null) {
+            log.info(
+                "Password reset requested for unknown email: {}",
+                normalizedEmail
+            );
+            return;
+        }
+
+        passwordResetTokenRepository.deleteByUser(user);
+
+        PasswordResetToken resetToken = PasswordResetToken.builder()
+            .token(generateResetToken())
+            .user(user)
+            .expiresAt(LocalDateTime.now().plusMinutes(15))
+            .build();
+
+        passwordResetTokenRepository.save(resetToken);
+        sendResetEmail(user, resetToken.getToken());
+    }
+
+    @Override
+    @Transactional
+    public void resetPassword(String token, ResetPasswordRequest request){
+        if (token == null || token.isBlank()) {
+            throw new BadRequestException("Reset token is required");
+        }
+
+        PasswordResetToken resetToken = passwordResetTokenRepository
+            .findByToken(token)
+            .orElseThrow(() -> new BadRequestException(
+                "Invalid or expired reset token"
+            ));
+
+        if (resetToken.isUsed() || resetToken.isExpired()) {
+            throw new BadRequestException(
+                "Invalid or expired reset token"
+            );
+        }
+
+        if(!ValidationUtils.isValidPassword(request.getNewPassword())){
+            throw new BadRequestException(
+                "Password must contain uppercase, lowercase and number"
+            );
+        }
+
+        User user = resetToken.getUser();
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setRefreshToken(null);
+        resetToken.markUsed();
+
+        userRepository.save(user);
+        passwordResetTokenRepository.save(resetToken);
+    }
+
+    private String generateResetToken(){
+        return UUID.randomUUID().toString();
+    }
+
+    private String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase();
+    }
+
+    private void sendResetEmail(User user, String resetToken){
+        String resetUrl = UriComponentsBuilder
+            .fromHttpUrl(frontendUrl)
+            .path("/reset-password")
+            .queryParam("token", resetToken)
+            .build()
+            .toUriString();
+
+        emailService.sendPasswordResetEmail(
+            user.getEmail(),
+            resetUrl
+        );
     }
 }

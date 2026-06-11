@@ -1,5 +1,6 @@
 package com.projectmanagement.controller.v1;
 
+import com.projectmanagement.dto.request.user.ChangePasswordRequest;
 import com.projectmanagement.dto.request.user.UpdateProfileRequest;
 import com.projectmanagement.dto.response.common.ApiResponse;
 import com.projectmanagement.dto.response.common.PageResponse;
@@ -11,6 +12,7 @@ import com.projectmanagement.entity.User;
 import com.projectmanagement.service.interfaces.IFileStorageService;
 import com.projectmanagement.service.interfaces.IUserService;
 import com.projectmanagement.utils.FileUtils;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +48,20 @@ public class UserController {
             @RequestBody UpdateProfileRequest request) {
         UserResponse updated = userService.updateProfile(user, request.getName(), null);
         return ResponseEntity.ok(ApiResponse.success(updated));
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @AuthenticationPrincipal User user,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        userService.changePassword(
+                user,
+                request.getCurrentPassword(),
+                request.getNewPassword()
+        );
+        return ResponseEntity.ok(
+                ApiResponse.<Void>success(null, "Password changed successfully")
+        );
     }
 
     @GetMapping("/activity")

@@ -13,8 +13,11 @@ public interface UserRepository
     extends JpaRepository<User, UUID> {
 
     Optional<User> findByEmail(String email);
+    Optional<User> findByEmailIgnoreCase(String email);
+    Optional<User> findByRefreshToken(String token);
 
     boolean existsByEmail(String email);
+    boolean existsByEmailIgnoreCase(String email);
 
     @Query("SELECT u FROM User u WHERE " +
            "LOWER(u.name) LIKE LOWER(CONCAT('%'," +

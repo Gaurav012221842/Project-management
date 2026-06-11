@@ -26,6 +26,8 @@ import RegisterPage
   from '../pages/auth/RegisterPage'
 import ForgotPasswordPage
   from '../pages/auth/ForgotPasswordPage'
+import ResetPasswordPage
+  from '../pages/auth/ResetPasswordPage'
 
 // App Pages
 import ProjectsPage
@@ -75,6 +77,14 @@ export default function AppRoutes() {
             element={
               <PublicRoute>
                 <ForgotPasswordPage />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/reset-password"
+            element={
+              <PublicRoute>
+                <ResetPasswordPage />
               </PublicRoute>
             }
           />

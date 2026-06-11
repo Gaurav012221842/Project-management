@@ -63,4 +63,35 @@ public class AuthController {
             )
         );
     }
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request) {
+
+        authService.forgotPassword(request.getEmail());
+
+        return ResponseEntity.ok(
+            ApiResponse.<Void>success(
+                null,
+                "If an account exists, a reset link has been sent"
+            )
+        );
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(
+            @RequestParam(required = false) String token,
+            @Valid @RequestBody ResetPasswordRequest request) {
+        String resetToken = token != null
+            ? token
+            : request.getToken();
+
+        authService.resetPassword(resetToken, request);
+
+        return ResponseEntity.ok(
+            ApiResponse.<Void>success(
+                null,
+                "Password reset successful"
+            )
+        );
+    }
 }

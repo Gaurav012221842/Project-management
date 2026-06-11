@@ -7,4 +7,7 @@ public interface IAuthService {
     AuthResponse register(RegisterRequest request);
     AuthResponse login(LoginRequest request);
     AuthResponse refreshToken(RefreshTokenRequest request);
+    void forgotPassword(String email);
+    void resetPassword(String token , ResetPasswordRequest request);
+
 }

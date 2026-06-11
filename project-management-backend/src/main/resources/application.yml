@@ -17,13 +17,13 @@ spring:
   # JPA
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: none
     show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-        use_sql_comments: true
+        format_sql: false
+        use_sql_comments: false
 
   # Flyway
   flyway:
@@ -72,7 +72,7 @@ spring:
 
 # Server
 server:
-  port: 8080
+  port: 8081
   error:
     include-message: always
     include-binding-errors: always
@@ -105,9 +105,10 @@ app:
 # Logging
 logging:
   level:
-    com.projectmanagement: DEBUG
+    com.projectmanagement: INFO
     org.springframework.security: INFO
-    org.hibernate.SQL: DEBUG
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.jdbc.bind: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level 

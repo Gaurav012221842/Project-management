@@ -12,6 +12,9 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=project_management_dev
+      - DB_PASSWORD=secret
       - REDIS_HOST=redis
     volumes:
       - .:/app
@@ -30,7 +33,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: secret
     ports:
-      - "5433:5433"
+      - "5433:5432"
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
     networks:

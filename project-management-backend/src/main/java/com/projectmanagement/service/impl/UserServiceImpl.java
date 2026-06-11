@@ -7,6 +7,7 @@ import com.projectmanagement.dto.response.user.UserStatsResponse;
 import com.projectmanagement.dto.response.user.UserSummaryResponse;
 import com.projectmanagement.entity.Task;
 import com.projectmanagement.entity.User;
+import com.projectmanagement.exception.custom.BadRequestException;
 import com.projectmanagement.exception.custom.ResourceNotFoundException;
 import com.projectmanagement.mapper.UserMapper;
 import com.projectmanagement.repository.ActivityLogRepository;
@@ -23,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +43,7 @@ public class UserServiceImpl implements IUserService {
     private final ActivityLogRepository activityLogRepository;
     private final SprintRepository sprintRepository;
     private final IFileStorageService fileStorageService;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserResponse getCurrentUser(User user) {
@@ -66,6 +69,25 @@ public class UserServiceImpl implements IUserService {
         UserResponse response = userMapper.toResponse(userRepository.save(user));
         response.setProfilePic(fileStorageService.resolveFileUrl(response.getProfilePic()));
         return response;
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(User user, String currentPassword, String newPassword) {
+        User persistedUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", user.getId()));
+
+        if (!passwordEncoder.matches(currentPassword, persistedUser.getPassword())) {
+            throw new BadRequestException("Current password is incorrect");
+        }
+
+        if (passwordEncoder.matches(newPassword, persistedUser.getPassword())) {
+            throw new BadRequestException("New password must be different from current password");
+        }
+
+        persistedUser.setPassword(passwordEncoder.encode(newPassword));
+        persistedUser.setRefreshToken(null);
+        userRepository.save(persistedUser);
     }
 
     @Override

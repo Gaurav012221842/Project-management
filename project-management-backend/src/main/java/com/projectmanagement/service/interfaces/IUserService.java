@@ -14,6 +14,7 @@ public interface IUserService {
     UserResponse getCurrentUser(User user);
     UserResponse getUserById(UUID id);
     UserResponse updateProfile(User user, String fullName, String avatarUrl);
+    void changePassword(User user, String currentPassword, String newPassword);
     PageResponse<ActivityLogResponse> getUserActivity(User user, int page, int size);
     UserStatsResponse getUserStats(User user);
     List<UserSummaryResponse> searchUsers(String query);

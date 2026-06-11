@@ -48,6 +48,72 @@ const getStrength = (pwd) => {
   }
 }
 
+const PasswordField = ({
+  name,
+  label,
+  show,
+  onToggle,
+  placeholder,
+  rules,
+  register,
+  errors,
+}) => (
+  <div>
+    <label className="block text-sm font-semibold
+                        text-gray-700 mb-1.5">
+      {label}
+    </label>
+    <div className="relative">
+      <LockClosedIcon
+        className={`
+          absolute left-3.5 top-1/2 -translate-y-1/2
+          w-4 h-4 pointer-events-none
+          ${errors[name] ? 'text-red-400' : 'text-gray-400'}
+        `}
+      />
+      <input
+        {...register(name, rules)}
+        type={show ? 'text' : 'password'}
+        placeholder={placeholder}
+        className={`
+          w-full pl-10 pr-12 py-3 border rounded-xl
+          text-sm transition-all focus:outline-none
+          focus:ring-2
+          ${errors[name]
+            ? 'border-red-300 focus:ring-red-500 bg-red-50'
+            : 'border-gray-200 focus:ring-indigo-500 ' +
+              'hover:border-gray-300'
+          }
+        `}
+      />
+      <button
+        type="button"
+        onClick={onToggle}
+        className="absolute right-3.5 top-1/2
+                    -translate-y-1/2 text-gray-400
+                    hover:text-gray-600
+                    transition-colors"
+      >
+        {show
+          ? <EyeSlashIcon className="w-4 h-4" />
+          : <EyeIcon      className="w-4 h-4" />
+        }
+      </button>
+    </div>
+    {errors[name] && (
+      <motion.p
+        initial={{ opacity: 0, y: -4 }}
+        animate={{ opacity: 1, y:  0 }}
+        className="mt-1 text-xs text-red-500
+                    flex items-center gap-1"
+      >
+        <ExclamationCircleIcon className="w-3.5 h-3.5" />
+        {errors[name].message}
+      </motion.p>
+    )}
+  </div>
+)
+
 export default function ChangePasswordForm() {
   const dispatch  = useDispatch()
   const isLoading = useSelector(selectPasswordLoading)
@@ -55,10 +121,7 @@ export default function ChangePasswordForm() {
   const [showCurrent, setShowCurrent] = useState(false)
   const [showNew,      setShowNew]    = useState(false)
   const [showConfirm,  setShowConfirm] = useState(false)
-  const [newPwd,       setNewPwd]      = useState('')
   const [success,      setSuccess]     = useState(false)
-
-  const strength = getStrength(newPwd)
 
   const {
     register,
@@ -68,6 +131,9 @@ export default function ChangePasswordForm() {
     formState: { errors },
   } = useForm()
 
+  const newPwd = watch('newPassword', '')
+  const strength = getStrength(newPwd)
+
   const onSubmit = (data) => {
     dispatch(changePassword({
       currentPassword: data.currentPassword,
@@ -75,80 +141,11 @@ export default function ChangePasswordForm() {
     })).then((result) => {
       if (!result.error) {
         reset()
-        setNewPwd('')
         setSuccess(true)
         setTimeout(() => setSuccess(false), 3000)
       }
     })
   }
-
-  const PasswordField = ({
-    name,
-    label,
-    show,
-    onToggle,
-    placeholder,
-    rules,
-    onChange,
-  }) => (
-    <div>
-      <label className="block text-sm font-semibold
-                          text-gray-700 mb-1.5">
-        {label}
-      </label>
-      <div className="relative">
-        <LockClosedIcon
-          className={`
-            absolute left-3.5 top-1/2 -translate-y-1/2
-            w-4 h-4 pointer-events-none
-            ${errors[name] ? 'text-red-400' : 'text-gray-400'}
-          `}
-        />
-        <input
-          {...register(name, rules)}
-          type={show ? 'text' : 'password'}
-          placeholder={placeholder}
-          onChange={(e) => {
-            if (onChange) onChange(e.target.value)
-          }}
-          className={`
-            w-full pl-10 pr-12 py-3 border rounded-xl
-            text-sm transition-all focus:outline-none
-            focus:ring-2
-            ${errors[name]
-              ? 'border-red-300 focus:ring-red-500 bg-red-50'
-              : 'border-gray-200 focus:ring-indigo-500 ' +
-                'hover:border-gray-300'
-            }
-          `}
-        />
-        <button
-          type="button"
-          onClick={onToggle}
-          className="absolute right-3.5 top-1/2
-                      -translate-y-1/2 text-gray-400
-                      hover:text-gray-600
-                      transition-colors"
-        >
-          {show
-            ? <EyeSlashIcon className="w-4 h-4" />
-            : <EyeIcon      className="w-4 h-4" />
-          }
-        </button>
-      </div>
-      {errors[name] && (
-        <motion.p
-          initial={{ opacity: 0, y: -4 }}
-          animate={{ opacity: 1, y:  0 }}
-          className="mt-1 text-xs text-red-500
-                      flex items-center gap-1"
-        >
-          <ExclamationCircleIcon className="w-3.5 h-3.5" />
-          {errors[name].message}
-        </motion.p>
-      )}
-    </div>
-  )
 
   return (
     <motion.div
@@ -201,6 +198,8 @@ export default function ChangePasswordForm() {
           show={showCurrent}
           onToggle={() => setShowCurrent(!showCurrent)}
           placeholder="Enter current password"
+          register={register}
+          errors={errors}
           rules={{
             required: 'Current password is required'
           }}
@@ -214,6 +213,8 @@ export default function ChangePasswordForm() {
             show={showNew}
             onToggle={() => setShowNew(!showNew)}
             placeholder="Enter new password"
+            register={register}
+            errors={errors}
             rules={{
               required:  'New password is required',
               minLength: {
@@ -225,7 +226,6 @@ export default function ChangePasswordForm() {
                 message: 'Need uppercase, lowercase & number',
               },
             }}
-            onChange={setNewPwd}
           />
 
           {/* Password Strength */}
@@ -308,6 +308,8 @@ export default function ChangePasswordForm() {
           show={showConfirm}
           onToggle={() => setShowConfirm(!showConfirm)}
           placeholder="Confirm new password"
+          register={register}
+          errors={errors}
           rules={{
             required: 'Please confirm your password',
             validate: (val) =>
