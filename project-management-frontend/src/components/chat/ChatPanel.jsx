@@ -77,7 +77,7 @@ export default function ChatPanel({
 
   const { isConnected, sendMessage, sendTyping } =
     useWebSocket({
-      projectId:    Number(projectId),
+      projectId,
       onMessage:    handleNewMessage,
       onTyping:     handleTyping,
       onUserStatus: handleUserStatus,
@@ -89,7 +89,7 @@ export default function ChatPanel({
   useEffect(() => {
     if (projectId) {
       dispatch(fetchMessages({
-        projectId: Number(projectId),
+        projectId,
         page:      0
       }))
     }
@@ -102,7 +102,7 @@ export default function ChatPanel({
   const handleLoadMore = useCallback(() => {
     if (hasMore && !loading) {
       dispatch(loadMoreMessages({
-        projectId: Number(projectId),
+        projectId,
         page:      currentPage + 1
       }))
     }
@@ -184,7 +184,7 @@ export default function ChatPanel({
             loading={loading}
             hasMore={hasMore}
             onLoadMore={handleLoadMore}
-            projectId={Number(projectId)}
+            projectId={projectId}
           />
 
           {/* Input */}

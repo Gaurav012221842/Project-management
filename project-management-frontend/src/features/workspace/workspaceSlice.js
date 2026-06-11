@@ -55,6 +55,9 @@ const workspaceSlice = createSlice({
       .addCase(fetchWorkspaces.fulfilled, (state, action) => {
         state.loading    = false
         state.workspaces = action.payload
+        if (!state.selectedWorkspace && action.payload.length > 0) {
+          state.selectedWorkspace = action.payload[0]
+        }
       })
       .addCase(fetchWorkspaces.rejected, (state, action) => {
         state.loading = false

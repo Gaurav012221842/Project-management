@@ -29,6 +29,10 @@ public interface ProjectRepository
            "WHERE p.owner.id = :userId")
     List<Project> findByOwnerId(UUID userId);
 
+    @Query("SELECT p FROM Project p " +
+           "WHERE p.owner.id = :userId")
+    Page<Project> findByOwnerId(UUID userId, Pageable pageable);
+
     @Query("SELECT COUNT(p) FROM Project p " +
            "WHERE p.owner.id = :userId")
     Long countByOwnerId(UUID userId);

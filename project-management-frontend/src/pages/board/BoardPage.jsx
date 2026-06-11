@@ -32,14 +32,17 @@ export default function BoardPage() {
 
   useEffect(() => {
     if (projectId) {
-      const id = Number(projectId)
-      dispatch(fetchProjectById(id))
-      dispatch(fetchProjectTasks(id))
+      dispatch(fetchProjectById(projectId))
+      dispatch(fetchProjectTasks(projectId))
     }
   }, [projectId, dispatch])
 
+  const taskList = Array.isArray(tasks)
+  ? tasks
+  : tasks?.content || [];
+
   const getTasksByStatus = (status) =>
-    tasks.filter(t => t.status === status)
+    taskList.filter(t => t.status === status)
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">

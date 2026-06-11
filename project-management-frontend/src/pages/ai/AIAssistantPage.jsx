@@ -113,7 +113,7 @@ export default function AIAssistantPage() {
   const activeFeature   = useSelector(selectActiveFeature)
 
   const renderActiveFeature = () => {
-    const props = { projectId: Number(projectId) }
+    const props = { projectId }
     switch (activeFeature) {
       case 'chat':        return <AIChat {...props} />
       case 'description': return <AIDescriptionGen {...props} />

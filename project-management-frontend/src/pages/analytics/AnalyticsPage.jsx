@@ -13,7 +13,7 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     if (projectId) {
-      dispatch(fetchSprints(Number(projectId)))
+      dispatch(fetchSprints(projectId))
     }
   }, [projectId, dispatch])
 

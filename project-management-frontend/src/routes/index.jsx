@@ -32,6 +32,8 @@ import ResetPasswordPage
 // App Pages
 import ProjectsPage
   from '../pages/project/ProjectsPage'
+import WorkspacePage
+  from '../pages/workspace/WorkspacePage'
 import BoardPage
   from '../pages/board/BoardPage'
 import SprintPage
@@ -109,6 +111,10 @@ export default function AppRoutes() {
           <Route
             path="/projects"
             element={<ProjectsPage />}
+          />
+          <Route
+            path="/workspaces"
+            element={<WorkspacePage />}
           />
           <Route
             path="/projects/:projectId/board"

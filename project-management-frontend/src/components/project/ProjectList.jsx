@@ -13,6 +13,7 @@ import {
 import {
   deleteProject,
 } from '../../features/project/projectSlice'
+import { getProjectColorIndex } from '../../utils/projectUtils'
 
 const STATUS_CONFIG = {
   ACTIVE:    { label: 'Active',    class: 'bg-green-100  text-green-700'  },
@@ -63,7 +64,7 @@ export default function ProjectList({ projects }) {
 
         const color =
           PROJECT_COLORS[
-            project.id % PROJECT_COLORS.length
+            getProjectColorIndex(project.id, PROJECT_COLORS.length)
           ]
 
         return (

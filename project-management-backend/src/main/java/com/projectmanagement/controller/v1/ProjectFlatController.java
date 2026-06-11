@@ -97,16 +97,23 @@ public class ProjectFlatController {
             @RequestParam(defaultValue = "10") int size,
             @AuthenticationPrincipal User user) {
         if (workspaceId == null) {
-            // Caller didn't pick a workspace; return empty page rather than 500.
+            var pageResult = projectRepository.findByOwnerId(
+                    user.getId(),
+                    org.springframework.data.domain.PageRequest.of(page, size));
             return ResponseEntity.ok(ApiResponse.success(
                     PageResponse.<ProjectResponse>builder()
-                            .content(java.util.Collections.emptyList())
-                            .page(page)
-                            .size(size)
-                            .totalElements(0)
-                            .totalPages(0)
-                            .first(true)
-                            .last(true)
+                            .content(pageResult.getContent().stream()
+                                    .map(project -> projectService.getProjectById(
+                                            project.getWorkspace().getId(),
+                                            project.getId(),
+                                            user))
+                                    .toList())
+                            .page(pageResult.getNumber())
+                            .size(pageResult.getSize())
+                            .totalElements(pageResult.getTotalElements())
+                            .totalPages(pageResult.getTotalPages())
+                            .first(pageResult.isFirst())
+                            .last(pageResult.isLast())
                             .build()));
         }
         return ResponseEntity.ok(ApiResponse.success(

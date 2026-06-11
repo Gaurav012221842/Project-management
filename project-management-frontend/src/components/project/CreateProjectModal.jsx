@@ -1,5 +1,5 @@
 // src/components/project/CreateProjectModal.jsx
-import { useState }               from 'react'
+import { useEffect, useState }    from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useForm }                from 'react-hook-form'
 import { motion }                 from 'framer-motion'
@@ -15,7 +15,11 @@ import {
   selectCreateLoading,
 } from '../../features/project/projectSlice'
 import {
+  fetchWorkspaces,
+  selectWorkspaceLoading,
   selectSelectedWorkspace,
+  selectWorkspaces,
+  setSelectedWorkspace,
 } from '../../features/workspace/workspaceSlice'
 import projectService
   from '../../services/api/projectService'
@@ -32,6 +36,8 @@ export default function CreateProjectModal({
   const dispatch          = useDispatch()
   const isLoading         = useSelector(selectCreateLoading)
   const selectedWorkspace = useSelector(selectSelectedWorkspace)
+  const workspaces        = useSelector(selectWorkspaces)
+  const workspaceLoading  = useSelector(selectWorkspaceLoading)
 
   const [memberSearch, setMemberSearch] = useState('')
   const [searchResults, setSearchResults] = useState([])
@@ -43,16 +49,38 @@ export default function CreateProjectModal({
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
     watch,
   } = useForm({
     defaultValues: {
       name:        '',
       description: '',
       status:      'ACTIVE',
+      workspaceId: selectedWorkspace?.id || '',
       startDate:   '',
       endDate:     '',
     }
   })
+
+  useEffect(() => {
+    if (!workspaces.length) {
+      dispatch(fetchWorkspaces())
+    }
+  }, [dispatch, workspaces.length])
+
+  useEffect(() => {
+    if (selectedWorkspace?.id) {
+      setValue('workspaceId', selectedWorkspace.id)
+    }
+  }, [selectedWorkspace, setValue])
+
+  const handleWorkspaceChange = (event) => {
+    const workspace = workspaces.find(
+      ws => String(ws.id) === event.target.value
+    )
+    setValue('workspaceId', event.target.value)
+    dispatch(setSelectedWorkspace(workspace || null))
+  }
 
   // ============================
   // Search Users
@@ -97,14 +125,14 @@ export default function CreateProjectModal({
   // Submit
   // ============================
   const onSubmit = (data) => {
-    if (!selectedWorkspace?.id) {
+    if (!data.workspaceId) {
       alert('Please select a workspace before creating a project.')
       return
     }
 
     dispatch(createProject({
       ...data,
-      workspaceId: selectedWorkspace.id,
+      workspaceId: data.workspaceId,
       memberIds: selectedMembers.map(m => m.id),
     })).then((result) => {
       if (!result.error) onClose()
@@ -209,6 +237,60 @@ export default function CreateProjectModal({
               {errors.name && (
                 <p className="mt-1 text-xs text-red-500">
                   {errors.name.message}
+                </p>
+              )}
+            </div>
+
+            {/* Workspace */}
+            <div>
+              <label className="block text-sm
+                                  font-semibold
+                                  text-gray-700 mb-1.5">
+                Workspace *
+              </label>
+              <select
+                {...register('workspaceId', {
+                  required: 'Workspace is required',
+                  onChange: handleWorkspaceChange,
+                })}
+                disabled={workspaceLoading}
+                className={`w-full px-4 py-3 border
+                             rounded-xl text-sm bg-white
+                             focus:outline-none
+                             focus:ring-2
+                             transition-all
+                             ${errors.workspaceId
+                               ? 'border-red-300 ' +
+                                 'focus:ring-red-500 ' +
+                                 'bg-red-50'
+                               : 'border-gray-200 ' +
+                                 'focus:ring-indigo-500 ' +
+                                 'hover:border-gray-300'
+                             }`}
+              >
+                <option value="">
+                  {workspaceLoading
+                    ? 'Loading workspaces...'
+                    : 'Select workspace'}
+                </option>
+                {workspaces.map(workspace => (
+                  <option
+                    key={workspace.id}
+                    value={workspace.id}
+                  >
+                    {workspace.name}
+                  </option>
+                ))}
+              </select>
+              {errors.workspaceId && (
+                <p className="mt-1 text-xs text-red-500">
+                  {errors.workspaceId.message}
+                </p>
+              )}
+              {!workspaceLoading &&
+               workspaces.length === 0 && (
+                <p className="mt-1 text-xs text-gray-400">
+                  Create a workspace first to add projects.
                 </p>
               )}
             </div>

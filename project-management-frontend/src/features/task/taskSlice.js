@@ -312,7 +312,10 @@ const taskSlice = createSlice({
         fetchProjectTasks.fulfilled,
         (state, action) => {
           state.loading = false
-          state.tasks   = action.payload
+
+          state.tasks = Array.isArray(action.payload)
+            ? action.payload
+            : action.payload?.content || []
         }
       )
       .addCase(
@@ -641,30 +644,39 @@ export const selectUploadLoading =
 export const selectTaskFilters =
   (state) => state.task.filters
 
-export const selectFilteredTasks =
-  (state) => {
-    const { tasks, filters } = state.task
-    return tasks.filter(task => {
-      const matchStatus =
-        !filters.status ||
-        task.status === filters.status
-      const matchPriority =
-        !filters.priority ||
-        task.priority === filters.priority
-      const matchSearch =
-        !filters.search ||
-        task.title.toLowerCase().includes(
-          filters.search.toLowerCase()
-        )
-      return matchStatus &&
-             matchPriority &&
-             matchSearch
-    })
-  }
+export const selectFilteredTasks = (state) => {
+  const { tasks, filters } = state.task
+
+  const taskList = Array.isArray(tasks)
+    ? tasks
+    : []
+
+  return taskList.filter(task => {
+    const matchStatus =
+      !filters.status ||
+      task.status === filters.status
+
+    const matchPriority =
+      !filters.priority ||
+      task.priority === filters.priority
+
+    const matchSearch =
+      !filters.search ||
+      task.title?.toLowerCase().includes(
+        filters.search.toLowerCase()
+      )
+
+    return (
+      matchStatus &&
+      matchPriority &&
+      matchSearch
+    )
+  })
+}
 
 export const selectTasksByStatus =
   (status) => (state) =>
-    state.task.tasks.filter(
+    (state.task.tasks || []).filter(
       t => t.status === status
     )
 

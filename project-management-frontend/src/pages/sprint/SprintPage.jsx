@@ -75,9 +75,8 @@ export default function SprintPage() {
   // ============================
   useEffect(() => {
     if (projectId) {
-      const id = Number(projectId)
-      dispatch(fetchSprints(id))
-      dispatch(fetchProjectTasks(id))
+      dispatch(fetchSprints(projectId))
+      dispatch(fetchProjectTasks(projectId))
     }
     return () => dispatch(clearSprints())
   }, [projectId, dispatch])
@@ -99,7 +98,7 @@ export default function SprintPage() {
       {/*         Header           */}
       {/* ======================== */}
       <div className="bg-white border-b
-                       border-gray-100 px-6 py-5
+                       border-gray-100 px-6 pt-5 py-5
                        sticky top-16 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto">
 
@@ -187,7 +186,7 @@ export default function SprintPage() {
       {/* ======================== */}
       {/*        Content           */}
       {/* ======================== */}
-      <div className="max-w-7xl mx-auto px-6 py-6">
+      <div className="max-w-7xl mx-auto px-6 pt-12 mt-6 py-6">
 
         {/* Stats Bar */}
         <SprintStatsBar stats={stats} />
@@ -197,7 +196,7 @@ export default function SprintPage() {
           <ActiveSprintBanner
             sprint={activeSprint}
             tasks={getSprintTasks(activeSprint.id)}
-            projectId={Number(projectId)}
+            projectId={projectId}
           />
         )}
 
@@ -305,7 +304,7 @@ export default function SprintPage() {
                   sprints={sprints}
                   getSprintTasks={getSprintTasks}
                   backlogTasks={backlogTasks}
-                  projectId={Number(projectId)}
+                  projectId={projectId}
                 />
               </motion.div>
             )}
@@ -325,7 +324,7 @@ export default function SprintPage() {
                     key={sprint.id}
                     sprint={sprint}
                     tasks={getSprintTasks(sprint.id)}
-                    projectId={Number(projectId)}
+                    projectId={projectId}
                     index={index}
                   />
                 ))}
@@ -353,7 +352,7 @@ export default function SprintPage() {
       <AnimatePresence>
         {showCreate && (
           <CreateSprintModal
-            projectId={Number(projectId)}
+            projectId={projectId}
             onClose={() => setShowCreate(false)}
           />
         )}

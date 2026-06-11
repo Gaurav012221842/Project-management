@@ -56,8 +56,8 @@ export default function MainLayout() {
   // ============================
   useEffect(() => {
     if (projectId) {
-      dispatch(fetchProjectById(Number(projectId)))
-      dispatch(fetchSprints(Number(projectId)))
+      dispatch(fetchProjectById(projectId))
+      dispatch(fetchSprints(projectId))
     }
   }, [projectId, dispatch])
 

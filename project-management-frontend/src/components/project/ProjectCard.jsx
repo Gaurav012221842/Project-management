@@ -19,6 +19,7 @@ import ConfirmDeleteModal from '../common/ConfirmDialog/ConfirmDialog'
 import {
   deleteProject,
 } from '../../features/project/projectSlice'
+import { getProjectColorIndex } from '../../utils/projectUtils'
 
 // ============================
 // Status Config
@@ -71,7 +72,9 @@ export default function ProjectCard({
     STATUS_CONFIG.ACTIVE
 
   const colorGradient =
-    PROJECT_COLORS[project.id % PROJECT_COLORS.length]
+    PROJECT_COLORS[
+      getProjectColorIndex(project.id, PROJECT_COLORS.length)
+    ]
 
   const progress = project.stats?.progress || 0
 

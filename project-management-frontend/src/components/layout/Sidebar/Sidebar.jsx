@@ -39,6 +39,7 @@ import {
   selectIsSidebarOpen,
   selectIsMobile,
 } from '../../../features/ui/uiSlice'
+import { getProjectColorIndex } from '../../../utils/projectUtils'
 
 // ============================
 // Nav Config
@@ -107,7 +108,7 @@ export default function Sidebar() {
     useState(true)
 
   const currentProject = projects.find(
-    p => p.id === Number(projectId)
+    p => p.id === projectId
   )
 
   const handleLogout = () => {
@@ -211,6 +212,13 @@ export default function Sidebar() {
           path="/projects"
           icon={HomeIcon}
           label="All Projects"
+          isOpen={isSidebarOpen}
+          exact
+        />
+        <NavItem
+          path="/workspaces"
+          icon={UserGroupIcon}
+          label="Workspaces"
           isOpen={isSidebarOpen}
           exact
         />
@@ -334,7 +342,7 @@ export default function Sidebar() {
                         flex items-center gap-2.5
                         w-full px-3 py-2 rounded-lg
                         text-left transition-colors
-                        ${Number(projectId) === project.id
+                        ${projectId === project.id
                           ? 'bg-indigo-600/20 ' +
                             'text-indigo-300'
                           : 'text-gray-400 ' +
@@ -345,8 +353,10 @@ export default function Sidebar() {
                     >
                       <div className={`w-5 h-5
                                         ${PROJECT_COLORS[
-                                          project.id %
-                                          PROJECT_COLORS.length
+                                          getProjectColorIndex(
+                                            project.id,
+                                            PROJECT_COLORS.length
+                                          )
                                         ]}
                                         rounded-md flex
                                         items-center

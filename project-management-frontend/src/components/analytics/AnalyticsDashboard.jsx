@@ -74,7 +74,7 @@ export default function AnalyticsDashboard() {
   // Fetch All Data
   // ============================
   const fetchAll = () => {
-    const id = Number(projectId)
+    const id = projectId
 
     dispatch(fetchProjectOverview(id))
     dispatch(fetchVelocity(id))
