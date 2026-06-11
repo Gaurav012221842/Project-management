@@ -33,3 +33,7 @@ build/
 .vscode/
 .env
 .env.example
+
+logs/
+*.log
+*.gz
