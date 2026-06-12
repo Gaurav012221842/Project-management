@@ -466,8 +466,7 @@ export default function Navbar({
             <div className="relative">
               <img
                 src={
-                  user?.profilePic ||
-                  '/default-avatar.png'
+                  user?.avatarUrl
                 }
                 alt={user?.name}
                 className="w-8 h-8 rounded-xl
@@ -527,8 +526,8 @@ export default function Navbar({
                                    gap-3">
                     <img
                       src={
-                        user?.profilePic ||
-                        '/default-avatar.png'
+                        user?.avatarUrl ||
+                        '/project-management-frontend/public/logo192.png'
                       }
                       alt={user?.name}
                       className="w-10 h-10 rounded-xl

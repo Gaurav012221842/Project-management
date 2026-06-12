@@ -418,8 +418,7 @@ export default function Sidebar() {
             <div className="relative flex-shrink-0">
               <img
                 src={
-                  user?.profilePic ||
-                  '/default-avatar.png'
+                  user?.avatarUrl
                 }
                 alt={user?.name}
                 className="w-9 h-9 rounded-xl
@@ -466,8 +465,7 @@ export default function Sidebar() {
             <div className="relative">
               <img
                 src={
-                  user?.profilePic ||
-                  '/default-avatar.png'
+                  user?.avatarUrl || '/project-management-frontend/public/logo192.png'
                 }
                 alt={user?.name}
                 className="w-9 h-9 rounded-xl
