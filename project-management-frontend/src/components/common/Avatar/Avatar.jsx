@@ -1,6 +1,8 @@
 // src/components/common/Avatar/Avatar.jsx
-import React from 'react'
-import { getAvatarColor, formatInitials } from '../../../utils/colorUtils'
+import React, { useMemo, useState } from 'react'
+import { getAvatarColor } from '../../../utils/colorUtils'
+import { formatInitials } from '../../../utils/formatUtils'
+import appConfig from '../../../config/appConfig'
 
 const SIZES = {
   xs: 'w-6 h-6 text-xs',
@@ -14,14 +16,35 @@ function Avatar({ name = '', src, size = 'md', className = '', online }) {
   const initials  = formatInitials(name)
   const colorClass = getAvatarColor(name)
   const sizeClass  = SIZES[size] || SIZES.md
+  const [hasImageError, setHasImageError] = useState(false)
+  const imageSrc = useMemo(() => {
+    if (!src || typeof src !== 'string') return ''
+    const value = src.trim()
+    if (!value) return ''
+    if (
+      value.startsWith('http://') ||
+      value.startsWith('https://') ||
+      value.startsWith('data:') ||
+      value.startsWith('blob:') ||
+      value.startsWith('/')
+    ) {
+      return value
+    }
+
+    const baseUrl = appConfig.apiUrl.replace(/\/$/, '')
+    const path = value.replace(/^\//, '')
+    return `${baseUrl}/${path}`
+  }, [src])
+  const showImage = imageSrc && !hasImageError
 
   return (
     <div className={`relative inline-flex shrink-0 ${className}`}>
-      {src ? (
+      {showImage ? (
         <img
-          src={src}
+          src={imageSrc}
           alt={name}
           className={`${sizeClass} rounded-full object-cover`}
+          onError={() => setHasImageError(true)}
         />
       ) : (
         <div

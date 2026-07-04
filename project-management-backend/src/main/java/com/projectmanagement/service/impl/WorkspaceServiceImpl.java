@@ -132,4 +132,31 @@ public class WorkspaceServiceImpl implements IWorkspaceService {
         }
         return workspace;
     }
+    @Override
+    @Transactional
+    public void inviteMember(UUID workspaceId, String email, User requester) {
+
+        Workspace workspace = findWorkspaceAndVerifyAccess(workspaceId, requester);
+
+        User userToInvite = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User not found with email: " + email));
+
+        if (memberRepository.existsByWorkspaceIdAndUserId(
+                workspaceId,
+                userToInvite.getId())) {
+            throw new DuplicateResourceException("User is already a member");
+        }
+
+        WorkspaceMember member = WorkspaceMember.builder()
+                .workspace(workspace)
+                .user(userToInvite)
+                .role(WorkspaceRole.MEMBER)
+                .joinedAt(LocalDateTime.now())
+                .build();
+
+        memberRepository.save(member);
+    }
+
 }

@@ -5,6 +5,7 @@ import {
 } from '@reduxjs/toolkit'
 import profileService
   from '../../services/api/profileService'
+import { updateUser } from '../auth/authSlice'
 import toast from 'react-hot-toast'
 
 // ============================
@@ -37,10 +38,14 @@ export const updateProfile = createAsyncThunk(
 
 export const uploadAvatar = createAsyncThunk(
   'profile/uploadAvatar',
-  async (formData, { rejectWithValue }) => {
+  async (formData, { dispatch, rejectWithValue }) => {
     try {
       const res = await profileService
         .uploadAvatar(formData)
+      dispatch(updateUser({
+        ...res.data,
+        avatarUrl: res.data?.profilePic,
+      }))
       return res.data
     } catch (err) {
       return rejectWithValue(err.message)

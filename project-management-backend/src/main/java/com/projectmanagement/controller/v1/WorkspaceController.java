@@ -2,6 +2,7 @@ package com.projectmanagement.controller.v1;
 
 import com.projectmanagement.dto.request.workspace.AddMemberRequest;
 import com.projectmanagement.dto.request.workspace.CreateWorkspaceRequest;
+import com.projectmanagement.dto.request.workspace.InviteMemberRequest;
 import com.projectmanagement.dto.request.workspace.UpdateWorkspaceRequest;
 import com.projectmanagement.dto.response.common.ApiResponse;
 import com.projectmanagement.dto.response.workspace.WorkspaceResponse;
@@ -61,6 +62,14 @@ public class WorkspaceController {
                                                         @AuthenticationPrincipal User user) {
         workspaceService.addMember(id, request, user);
         return ResponseEntity.ok(ApiResponse.<Void>success(null, "Member added"));
+    }
+
+    @PostMapping("/{id}/invite")
+    public ResponseEntity<ApiResponse<Void>> inviteMember(@PathVariable UUID id,
+                                                           @Valid @RequestBody InviteMemberRequest request,
+                                                           @AuthenticationPrincipal User user) {
+        workspaceService.inviteMember(id, request.getEmail(), user);
+        return ResponseEntity.ok(ApiResponse.<Void>success(null, "Invitation sent"));
     }
 
     @DeleteMapping("/{id}/members/{userId}")

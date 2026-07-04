@@ -2,15 +2,15 @@
 import { useState }               from 'react'
 import { useDispatch }            from 'react-redux'
 import { motion }                 from 'framer-motion'
-import { format, isToday }        from 'date-fns'
+import { format }                 from 'date-fns'
 import {
   TrashIcon,
   DocumentIcon,
-  PhotoIcon,
   EllipsisHorizontalIcon,
 } from '@heroicons/react/24/outline'
 import { deleteMessage }
   from '../../features/chat/chatSlice'
+import Avatar from '../common/Avatar'
 
 export default function ChatMessageItem({
   message,
@@ -24,6 +24,14 @@ export default function ChatMessageItem({
   const timeStr = message.createdAt
     ? format(new Date(message.createdAt), 'HH:mm')
     : ''
+  const senderName = message.sender?.name ||
+    message.sender?.username ||
+    message.sender?.email ||
+    'User'
+  const senderAvatar = message.sender?.profilePic ||
+    message.sender?.avatarUrl ||
+    message.sender?.profile_pic ||
+    ''
 
   const handleDelete = () => {
     dispatch(deleteMessage({
@@ -50,14 +58,10 @@ export default function ChatMessageItem({
       >
         {/* Avatar */}
         {showAvatar && !isOwn ? (
-          <img
-            src={
-              message.sender?.profilePic ||
-              '/default-avatar.png'
-            }
-            alt={message.sender?.name}
-            className="w-7 h-7 rounded-full
-                        object-cover flex-shrink-0"
+          <Avatar
+            name={senderName}
+            src={senderAvatar}
+            size="xs"
           />
         ) : (
           <div className="w-7 flex-shrink-0" />
@@ -71,7 +75,7 @@ export default function ChatMessageItem({
           {showAvatar && !isOwn && (
             <span className="text-xs text-gray-400
                               mb-1 ml-1">
-              {message.sender?.name}
+              {senderName}
             </span>
           )}
 
@@ -152,15 +156,11 @@ export default function ChatMessageItem({
       {/* Avatar */}
       {!isOwn ? (
         showAvatar ? (
-          <img
-            src={
-              message.sender?.profilePic ||
-              '/default-avatar.png'
-            }
-            alt={message.sender?.name}
-            className="w-7 h-7 rounded-full
-                        object-cover flex-shrink-0
-                        mb-4"
+          <Avatar
+            name={senderName}
+            src={senderAvatar}
+            size="xs"
+            className="mb-4"
           />
         ) : (
           <div className="w-7 flex-shrink-0" />
@@ -177,7 +177,7 @@ export default function ChatMessageItem({
         {showAvatar && !isOwn && (
           <span className="text-xs text-gray-400
                             mb-1 ml-3">
-            {message.sender?.name}
+            {senderName}
           </span>
         )}
 

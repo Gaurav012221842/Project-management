@@ -1,10 +1,11 @@
 // src/components/chat/ChatHeader.jsx
 import { useState }      from 'react'
-import { motion }        from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   XMarkIcon,
   MagnifyingGlassIcon,
-  UsersIcon,
+  PhoneIcon,
+  VideoCameraIcon,
 } from '@heroicons/react/24/outline'
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/solid'
 
@@ -13,8 +14,10 @@ export default function ChatHeader({
   onlineCount,
   onClose,
   onSearch,
+  onStartCall,
 }) {
   const [showSearch, setShowSearch] = useState(false)
+  const [showCallOptions, setShowCallOptions] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
   const handleSearch = (e) => {
@@ -63,6 +66,51 @@ export default function ChatHeader({
 
         {/* Actions */}
         <div className="flex items-center gap-1">
+          <div className="relative">
+            <button
+              onClick={() => setShowCallOptions(!showCallOptions)}
+              className="p-2 rounded-lg text-gray-400
+                          hover:text-gray-600
+                          hover:bg-gray-100
+                          transition-colors"
+              title="Start a call"
+            >
+              <PhoneIcon className="w-4 h-4" />
+            </button>
+
+            <AnimatePresence>
+              {showCallOptions && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 6 }}
+                  className="absolute right-0 mt-2 w-44 rounded-xl border border-gray-200 bg-white p-2 shadow-lg z-20"
+                >
+                  <button
+                    onClick={() => {
+                      setShowCallOptions(false)
+                      onStartCall?.('audio')
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  >
+                    <PhoneIcon className="w-4 h-4" />
+                    Audio call
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowCallOptions(false)
+                      onStartCall?.('video')
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  >
+                    <VideoCameraIcon className="w-4 h-4" />
+                    Video call
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           <button
             onClick={() => setShowSearch(!showSearch)}
             className="p-2 rounded-lg text-gray-400

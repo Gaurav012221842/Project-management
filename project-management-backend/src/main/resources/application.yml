@@ -96,11 +96,13 @@ aws:
 # OpenAI
 openai:
   api-key: ${OPENAI_API_KEY:}
-  model: gpt-3.5-turbo
+  model: gpt-5
   max-tokens: 500
 
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:3000}
+  backend-url: ${BACKEND_URL:http://localhost:8081}
+  upload-dir: ${UPLOAD_DIR:uploads}
 
 # Logging
 logging:

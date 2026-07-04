@@ -14,6 +14,7 @@ export function useWebSocket({
   onTyping,
   onUserStatus,
   onNotification,
+  onCall,
 }) {
   const [isConnected, setIsConnected] =
     useState(false)
@@ -64,6 +65,14 @@ export function useWebSocket({
           )
         }
 
+        // Subscribe Call Events
+        if (onCall) {
+          socketClient.subscribe(
+            SOCKET_EVENTS.CALL.RECEIVE(projectId),
+            onCall
+          )
+        }
+
         // Join project room
         socketClient.publish(
           SOCKET_EVENTS.USER.JOIN(projectId),
@@ -92,6 +101,9 @@ export function useWebSocket({
       socketClient.unsubscribe(
         SOCKET_EVENTS.USER.STATUS(projectId)
       )
+      socketClient.unsubscribe(
+        SOCKET_EVENTS.CALL.RECEIVE(projectId)
+      )
     }
   }, [projectId])
 
@@ -119,9 +131,25 @@ export function useWebSocket({
     )
   }, [])
 
+  const sendCallRequest = useCallback((type = 'audio') => {
+    socketClient.publish(
+      SOCKET_EVENTS.CALL.REQUEST(projectIdRef.current),
+      { type, from: localStorage.getItem('token') || 'anonymous' }
+    )
+  }, [])
+
+  const sendCallEvent = useCallback((event, payload = {}) => {
+    socketClient.publish(
+      SOCKET_EVENTS.CALL.EVENT(projectIdRef.current),
+      { event, ...payload }
+    )
+  }, [])
+
   return {
     isConnected,
     sendMessage,
     sendTyping,
+    sendCallRequest,
+    sendCallEvent,
   }
 }

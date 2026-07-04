@@ -33,17 +33,27 @@ public class ChatWebSocketController {
     public void sendMessage(
         @DestinationVariable UUID projectId,
         @Payload SendMessageRequest request,
-        Principal principal
+        Principal principal,
+        SimpMessageHeaderAccessor headerAccessor
     ) {
+        String senderEmail = resolveSender(principal, headerAccessor);
+        if (senderEmail == null) {
+            log.warn(
+                "Rejected chat message for project {} because no authenticated user was available",
+                projectId
+            );
+            return;
+        }
+
         log.info(
             "Message from {} to project {}",
-            principal.getName(), projectId
+            senderEmail, projectId
         );
 
         MessageResponse message =
             messageService.sendMessage(
                 projectId,
-                principal.getName(),
+                senderEmail,
                 request
             );
 
@@ -59,13 +69,23 @@ public class ChatWebSocketController {
     // ============================
     @MessageMapping("/project/{projectId}/chat.typing")
     public void typing(
-        @DestinationVariable Long projectId,
+        @DestinationVariable UUID projectId,
         @Payload TypingPayload payload,
-        Principal principal
+        Principal principal,
+        SimpMessageHeaderAccessor headerAccessor
     ) {
+        String senderEmail = resolveSender(principal, headerAccessor);
+        if (senderEmail == null) {
+            log.warn(
+                "Rejected typing event for project {} because no authenticated user was available",
+                projectId
+            );
+            return;
+        }
+
         TypingResponse response = TypingResponse.builder()
             .userId(payload.getUserId())
-            .userName(principal.getName())
+            .userName(senderEmail)
             .isTyping(payload.isTyping())
             .build();
 
@@ -79,15 +99,86 @@ public class ChatWebSocketController {
     }
 
     // ============================
+    // Call Request
+    // ============================
+    @MessageMapping("/project/{projectId}/call.request")
+    public void requestCall(
+        @DestinationVariable UUID projectId,
+        @Payload CallRequestPayload payload,
+        Principal principal,
+        SimpMessageHeaderAccessor headerAccessor
+    ) {
+        String senderEmail = resolveSender(principal, headerAccessor);
+        if (senderEmail == null) {
+            log.warn(
+                "Rejected call request for project {} because no authenticated user was available",
+                projectId
+            );
+            return;
+        }
+
+        CallEventResponse response = CallEventResponse.builder()
+            .event("REQUEST")
+            .type(payload.getType())
+            .from(senderEmail)
+            .message("Incoming " + payload.getType() + " call from " + senderEmail)
+            .build();
+
+        messagingTemplate.convertAndSend(
+            "/topic/project/" + projectId + "/call",
+            response
+        );
+    }
+
+    @MessageMapping("/project/{projectId}/call.event")
+    public void handleCallEvent(
+        @DestinationVariable UUID projectId,
+        @Payload CallEventPayload payload,
+        Principal principal,
+        SimpMessageHeaderAccessor headerAccessor
+    ) {
+        String senderEmail = resolveSender(principal, headerAccessor);
+        if (senderEmail == null) {
+            log.warn(
+                "Rejected call event for project {} because no authenticated user was available",
+                projectId
+            );
+            return;
+        }
+
+        CallEventResponse response = CallEventResponse.builder()
+            .event(payload.getEvent())
+            .type(payload.getType())
+            .from(senderEmail)
+            .message(payload.getEvent() + " for " + (payload.getType() == null ? "call" : payload.getType()))
+            .candidate(payload.getCandidate())
+            .sdp(payload.getSdp())
+            .build();
+
+        messagingTemplate.convertAndSend(
+            "/topic/project/" + projectId + "/call",
+            response
+        );
+    }
+
+    // ============================
     // User Online Status
     // ============================
     @MessageMapping("/project/{projectId}/user.join")
     public void userJoin(
-        @DestinationVariable Long projectId,
+        @DestinationVariable UUID projectId,
         SimpMessageHeaderAccessor headerAccessor,
         Principal principal
     ) {
-        String username = principal.getName();
+        String username = resolveSender(principal, headerAccessor);
+        if (username == null) {
+            log.warn(
+                "Rejected join event for project {} because no authenticated user was available",
+                projectId
+            );
+            return;
+        }
+
         headerAccessor
             .getSessionAttributes()
             .put("username", username);
@@ -108,19 +199,25 @@ public class ChatWebSocketController {
             status
         );
 
-        log.info("{} joined project {}", 
+        log.info("{} joined project {}",
             username, projectId
         );
     }
 
     @MessageMapping("/project/{projectId}/user.leave")
     public void userLeave(
-        @DestinationVariable Long projectId,
-        Principal principal
+        @DestinationVariable UUID projectId,
+        Principal principal,
+        SimpMessageHeaderAccessor headerAccessor
     ) {
+        String username = resolveSender(principal, headerAccessor);
+        if (username == null) {
+            return;
+        }
+
         OnlineStatusResponse status =
             OnlineStatusResponse.builder()
-                .username(principal.getName())
+                .username(username)
                 .status("OFFLINE")
                 .build();
 
@@ -130,6 +227,24 @@ public class ChatWebSocketController {
             "/user.status",
             status
         );
+    }
+
+    private String resolveSender(
+        Principal principal,
+        SimpMessageHeaderAccessor headerAccessor
+    ) {
+        if (principal != null && principal.getName() != null) {
+            return principal.getName();
+        }
+
+        if (headerAccessor != null && headerAccessor.getSessionAttributes() != null) {
+            Object username = headerAccessor.getSessionAttributes().get("username");
+            if (username instanceof String value && !value.isBlank()) {
+                return value;
+            }
+        }
+
+        return null;
     }
 
     // ============================
@@ -154,5 +269,29 @@ public class ChatWebSocketController {
     public static class OnlineStatusResponse {
         private String username;
         private String status;
+    }
+
+    @lombok.Data
+    public static class CallRequestPayload {
+        private String type;
+    }
+
+    @lombok.Data
+    public static class CallEventPayload {
+        private String event;
+        private String type;
+        private Object candidate;
+        private Object sdp;
+    }
+
+    @lombok.Data
+    @lombok.Builder
+    public static class CallEventResponse {
+        private String event;
+        private String type;
+        private String from;
+        private String message;
+        private Object candidate;
+        private Object sdp;
     }
 }

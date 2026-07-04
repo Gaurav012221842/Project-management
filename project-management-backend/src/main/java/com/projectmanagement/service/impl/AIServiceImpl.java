@@ -560,13 +560,18 @@ public class AIServiceImpl implements IAIService {
     private String callOpenAI(
         List<Map<String, String>> messages
     ) {
+        if (apiKey == null || apiKey.isBlank()) {
+            log.warn("OpenAI API key is missing; returning fallback response");
+            return "AI features are currently unavailable because the OpenAI API key is not configured.";
+        }
+
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(apiKey);
             headers.setContentType(
                 MediaType.APPLICATION_JSON
             );
-
+            log.info("Calling OpenAI API with model: {}, api_key: {}", model, apiKey);
             Map<String, Object> requestBody = Map.of(
                 "model",       model,
                 "messages",    messages,
@@ -588,7 +593,7 @@ public class AIServiceImpl implements IAIService {
                 && response.getBody() != null) {
 
                 List<Map<String, Object>> choices =
-                    (List<Map<String, Object>>)
+                    (List<Map<String, Object>>) 
                     response.getBody().get("choices");
 
                 Map<String, Object> message =
@@ -598,27 +603,25 @@ public class AIServiceImpl implements IAIService {
                 String content =
                     (String) message.get("content");
 
-                // Clean JSON response
-                return content
+                return content == null ? "" : content
                     .trim()
                     .replaceAll("```json", "")
                     .replaceAll("```", "")
                     .trim();
             }
 
-            throw new AIServiceException(
-                "Empty response from OpenAI"
-            );
+            log.warn("OpenAI returned an empty or unsuccessful response");
+            return "AI features are temporarily unavailable. Please try again later.";
 
-        } catch (AIServiceException e) {
-            throw e;
         } catch (Exception e) {
-            log.error("OpenAI API error: {}",
-                e.getMessage());
-            throw new AIServiceException(
-                "AI service unavailable: " +
-                e.getMessage()
-            );
+            String errorMessage = e.getMessage() == null ? "unknown error" : e.getMessage();
+            log.error("OpenAI API error: {}", errorMessage);
+
+            if (errorMessage.contains("429") || errorMessage.contains("insufficient_quota") || errorMessage.contains("quota")) {
+                return "AI features are temporarily unavailable because the OpenAI quota has been exhausted.";
+            }
+
+            return "AI features are temporarily unavailable. Please try again later.";
         }
     }
 

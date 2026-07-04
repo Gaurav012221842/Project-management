@@ -97,7 +97,7 @@ public class ProjectFlatController {
             @RequestParam(defaultValue = "10") int size,
             @AuthenticationPrincipal User user) {
         if (workspaceId == null) {
-            var pageResult = projectRepository.findByOwnerId(
+            var pageResult = projectRepository.findByMemberUserId(
                     user.getId(),
                     org.springframework.data.domain.PageRequest.of(page, size));
             return ResponseEntity.ok(ApiResponse.success(

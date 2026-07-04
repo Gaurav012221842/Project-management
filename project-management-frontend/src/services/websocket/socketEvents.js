@@ -24,6 +24,16 @@ export const SOCKET_EVENTS = {
       `/topic/project/${projectId}/user.status`,
   },
 
+  // Call Events
+  CALL: {
+    REQUEST: (projectId) =>
+      `/app/project/${projectId}/call.request`,
+    EVENT: (projectId) =>
+      `/app/project/${projectId}/call.event`,
+    RECEIVE: (projectId) =>
+      `/topic/project/${projectId}/call`,
+  },
+
   // Notification Events
   NOTIFICATION: {
     RECEIVE: '/user/queue/notifications',

@@ -17,10 +17,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -76,7 +76,6 @@ public class AuthServiceImpl implements IAuthService {
             jwtService.generateRefreshToken(savedUser);
 
         savedUser.setRefreshToken(refreshToken);
-        userRepository.save(savedUser);
 
         // Send welcome email async
         emailService.sendWelcomeEmail(
@@ -110,27 +109,14 @@ public class AuthServiceImpl implements IAuthService {
             email
         );
 
-        Optional<User> loginUser = userRepository
-            .findByEmailIgnoreCase(email);
-
-        if (loginUser.isEmpty()) {
-            log.warn("Login failed: no user found for email: {}", email);
-        }
-
-        authManager.authenticate(
+        Authentication authentication = authManager.authenticate(
             new UsernamePasswordAuthenticationToken(
                 email,
                 request.getPassword()
             )
         );
 
-        User user = userRepository
-            .findByEmailIgnoreCase(email)
-            .orElseThrow(() -> 
-                new ResourceNotFoundException(
-                    "User not found"
-                )
-            );
+        User user = (User) authentication.getPrincipal();
 
         String accessToken = 
             jwtService.generateAccessToken(user);

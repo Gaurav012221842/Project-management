@@ -18,6 +18,9 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.UUID;
 
@@ -34,6 +37,12 @@ public class FileStorageServiceImpl implements IFileStorageService {
 
     @Value("${aws.region:eu-east-1}")
     private String region;
+
+    @Value("${app.backend-url:http://localhost:8081}")
+    private String backendUrl;
+
+    @Value("${app.upload-dir:uploads}")
+    private String uploadDir;
 
     @Override
     public String uploadFile(MultipartFile file, String folder) {
@@ -54,7 +63,7 @@ public class FileStorageServiceImpl implements IFileStorageService {
             throw new FileUploadException("Failed to upload file: " + e.getMessage(), e);
         } catch (Exception e) {
             log.error("Exception during S3 upload to bucket {} with key {}", bucket, key, e);
-            throw new FileUploadException("Failed to upload file to S3: " + e.getMessage(), e);
+            return uploadFileLocally(file, folder, e);
         }
     }
 
@@ -62,6 +71,15 @@ public class FileStorageServiceImpl implements IFileStorageService {
     public String resolveFileUrl(String key) {
         if (key == null || key.isBlank()) {
             return null;
+        }
+
+        if (key.startsWith("uploads/") || key.startsWith("/uploads/")) {
+            String normalizedKey = key.startsWith("/") ? key : "/" + key;
+            return backendUrl.replaceAll("/$", "") + normalizedKey;
+        }
+
+        if (key.startsWith("http://") || key.startsWith("https://")) {
+            return key;
         }
 
         return presignUrl(key);
@@ -88,6 +106,37 @@ public class FileStorageServiceImpl implements IFileStorageService {
         return s3Presigner.presignGetObject(presignRequest)
                 .url()
                 .toExternalForm();
+    }
+
+    private String uploadFileLocally(MultipartFile file, String folder, Exception originalException) {
+        String safeName = sanitizeFileName(file.getOriginalFilename());
+        String relativeKey = "uploads/" + folder + "/" + UUID.randomUUID() + "_" + safeName;
+        Path target = Paths.get(uploadDir, folder).toAbsolutePath().normalize();
+
+        try {
+            Files.createDirectories(target);
+            Path destination = target.resolve(relativeKey.substring(("uploads/" + folder + "/").length()));
+            file.transferTo(destination);
+            log.warn(
+                    "S3 upload failed, stored file locally at {}. Original error: {}",
+                    destination,
+                    originalException.getMessage()
+            );
+            return relativeKey;
+        } catch (IOException localException) {
+            log.error("Local file upload failed after S3 upload failed", localException);
+            throw new FileUploadException("Failed to upload file: " + localException.getMessage(), localException);
+        }
+    }
+
+    private String sanitizeFileName(String fileName) {
+        if (fileName == null || fileName.isBlank()) {
+            return "file";
+        }
+        return Paths.get(fileName)
+                .getFileName()
+                .toString()
+                .replaceAll("[^a-zA-Z0-9._-]", "_");
     }
 
     private String extractKey(String fileUrl) {

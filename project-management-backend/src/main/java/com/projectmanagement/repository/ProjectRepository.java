@@ -15,8 +15,9 @@ public interface ProjectRepository
     extends JpaRepository<Project, UUID> {
 
     @Query("SELECT p FROM Project p " +
-           "JOIN p.members pm " +
-           "WHERE pm.user.id = :userId")
+           "LEFT JOIN p.workspace w " +
+           "LEFT JOIN WorkspaceMember wm ON wm.workspace.id = w.id AND wm.user.id = :userId " +
+           "WHERE p.owner.id = :userId OR wm.user.id = :userId")
     Page<Project> findByMemberUserId(
         UUID userId, Pageable pageable
     );

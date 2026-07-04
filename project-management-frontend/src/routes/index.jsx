@@ -34,6 +34,8 @@ import ProjectsPage
   from '../pages/project/ProjectsPage'
 import WorkspacePage
   from '../pages/workspace/WorkspacePage'
+import WorkspaceSettingsPage
+  from '../pages/workspace/WorkspaceSettingsPage'
 import BoardPage
   from '../pages/board/BoardPage'
 import SprintPage
@@ -46,6 +48,10 @@ import ProfilePage
   from '../pages/profile/ProfilePage'
 import NotFoundPage
   from '../pages/error/NotFoundPage'
+import SettingsPage
+  from '../pages/settings/SettingsPage'
+import ProjectSettingsPage
+  from '../pages/project/ProjectSettingsPage'
 
 export default function AppRoutes() {
   const location = useLocation()
@@ -139,6 +145,19 @@ export default function AppRoutes() {
         <Route
             path="/profile"
             element={<ProfilePage />}
+          />
+          <Route path="/workspaces" element={<WorkspacePage />} />
+          <Route
+            path="/settings"
+            element={<SettingsPage />}
+          />
+          <Route
+            path="/projects/:projectId/settings"
+            element={<ProjectSettingsPage />}
+          />
+          <Route
+            path="/workspaces/:workspaceId/settings"
+            element={<WorkspaceSettingsPage />}
           />
         </Route>
 

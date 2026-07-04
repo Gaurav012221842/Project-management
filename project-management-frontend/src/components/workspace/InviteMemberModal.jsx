@@ -20,7 +20,7 @@ function InviteMemberModal({ isOpen, onClose, workspaceId }) {
     setLoading(true)
     setError(null)
     try {
-      await axiosInstance.post(`/api/workspaces/${workspaceId}/invite`, { email })
+      await axiosInstance.post(`/api/v1/workspaces/${workspaceId}/invite`, { email })
       toast.success(`Invitation sent to ${email}`)
       setEmail('')
       onClose()

@@ -20,7 +20,7 @@ function EditWorkspaceModal({ isOpen, onClose, workspace }) {
 
   const onSubmit = async (data) => {
     try {
-      await axiosInstance.put(`/api/workspaces/${workspace.id}`, data)
+      await axiosInstance.put(`/api/v1/workspaces/${workspace.id}`, data)
       toast.success('Workspace updated')
       onClose()
     } catch {

@@ -17,4 +17,5 @@ public interface IWorkspaceService {
     void deleteWorkspace(UUID id, User user);
     void addMember(UUID workspaceId, AddMemberRequest request, User requester);
     void removeMember(UUID workspaceId, UUID userId, User requester);
+    void inviteMember(UUID workspaceId, String email, User requester);
 }
