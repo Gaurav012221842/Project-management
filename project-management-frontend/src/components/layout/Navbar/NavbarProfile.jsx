@@ -24,7 +24,11 @@ function NavbarProfile() {
       align="right"
       trigger={
         <button className="flex items-center gap-2 p-1 rounded-lg hover:bg-gray-100 transition-colors">
-          <Avatar name={user?.name || user?.username || 'U'} src={user?.avatarUrl} size="sm" />
+          <Avatar
+            name={user?.name || user?.username || 'U'}
+            src={user?.avatarUrl || user?.profilePic}
+            size="sm"
+          />
         </button>
       }
       items={items}

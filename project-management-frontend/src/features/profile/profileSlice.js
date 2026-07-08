@@ -13,9 +13,13 @@ import toast from 'react-hot-toast'
 // ============================
 export const fetchProfile = createAsyncThunk(
   'profile/fetch',
-  async (_, { rejectWithValue }) => {
+  async (_, { dispatch, rejectWithValue }) => {
     try {
       const res = await profileService.getProfile()
+      dispatch(updateUser({
+        ...res.data,
+        avatarUrl: res.data?.avatarUrl || res.data?.profilePic,
+      }))
       return res.data
     } catch (err) {
       return rejectWithValue(err.message)
@@ -25,10 +29,14 @@ export const fetchProfile = createAsyncThunk(
 
 export const updateProfile = createAsyncThunk(
   'profile/update',
-  async (data, { rejectWithValue }) => {
+  async (data, { dispatch, rejectWithValue }) => {
     try {
       const res = await profileService
         .updateProfile(data)
+      dispatch(updateUser({
+        ...res.data,
+        avatarUrl: res.data?.avatarUrl || res.data?.profilePic,
+      }))
       return res.data
     } catch (err) {
       return rejectWithValue(err.message)
@@ -44,7 +52,7 @@ export const uploadAvatar = createAsyncThunk(
         .uploadAvatar(formData)
       dispatch(updateUser({
         ...res.data,
-        avatarUrl: res.data?.profilePic,
+        avatarUrl: res.data?.avatarUrl || res.data?.profilePic,
       }))
       return res.data
     } catch (err) {

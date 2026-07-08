@@ -55,6 +55,34 @@ const NOTIFICATION_CONFIG = {
     dot:       'bg-red-500',
     label:     'Deadline',
   },
+  WORKSPACE_INVITE: {
+    icon:      '🏢',
+    bg:        'bg-cyan-100',
+    color:     'text-cyan-700',
+    dot:       'bg-cyan-500',
+    label:     'Workspace',
+  },
+  WORKSPACE_MEMBER_ADDED: {
+    icon:      '👥',
+    bg:        'bg-emerald-100',
+    color:     'text-emerald-700',
+    dot:       'bg-emerald-500',
+    label:     'Workspace',
+  },
+  MESSAGE_RECEIVED: {
+    icon:      '✉️',
+    bg:        'bg-sky-100',
+    color:     'text-sky-700',
+    dot:       'bg-sky-500',
+    label:     'Message',
+  },
+  CALL_INVITE: {
+    icon:      '📞',
+    bg:        'bg-rose-100',
+    color:     'text-rose-700',
+    dot:       'bg-rose-500',
+    label:     'Call',
+  },
 }
 
 export default function NotificationItem({
@@ -97,6 +125,18 @@ export default function NotificationItem({
         case 'SPRINT_STARTED':
           navigate(
             `/projects/${notification.referenceId}/sprints`
+          )
+          break
+        case 'MESSAGE_RECEIVED':
+        case 'CALL_INVITE':
+          navigate(
+            `/projects/${notification.referenceId}/chat`
+          )
+          break
+        case 'WORKSPACE_INVITE':
+        case 'WORKSPACE_MEMBER_ADDED':
+          navigate(
+            `/workspaces/${notification.referenceId}/settings`
           )
           break
         default:

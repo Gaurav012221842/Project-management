@@ -25,13 +25,20 @@ function Avatar({ name = '', src, size = 'md', className = '', online }) {
       value.startsWith('http://') ||
       value.startsWith('https://') ||
       value.startsWith('data:') ||
-      value.startsWith('blob:') ||
-      value.startsWith('/')
+      value.startsWith('blob:')
     ) {
       return value
     }
 
     const baseUrl = appConfig.apiUrl.replace(/\/$/, '')
+    if (value.startsWith('/uploads/')) {
+      return `${baseUrl}${value}`
+    }
+
+    if (value.startsWith('/')) {
+      return value
+    }
+
     const path = value.replace(/^\//, '')
     return `${baseUrl}/${path}`
   }, [src])

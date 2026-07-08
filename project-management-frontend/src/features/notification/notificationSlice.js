@@ -269,6 +269,10 @@ const getNotificationIcon = (type) => {
     SPRINT_STARTED:    '🚀',
     MENTION:           '👋',
     DEADLINE_REMINDER: '⏰',
+    WORKSPACE_INVITE:  '🏢',
+    WORKSPACE_MEMBER_ADDED: '👥',
+    MESSAGE_RECEIVED:  '✉️',
+    CALL_INVITE:       '📞',
   }
   return icons[type] || '🔔'
 }

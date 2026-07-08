@@ -40,6 +40,7 @@ import {
   selectIsMobile,
 } from '../../../features/ui/uiSlice'
 import { getProjectColorIndex } from '../../../utils/projectUtils'
+import Avatar from '../../common/Avatar'
 
 // ============================
 // Nav Config
@@ -416,14 +417,12 @@ export default function Sidebar() {
 
             {/* Avatar */}
             <div className="relative flex-shrink-0">
-              <img
-                src={
-                  user?.avatarUrl || '/project-management-frontend/public/logo192.png'
-                }
-                alt={user?.name}
-                className="w-9 h-9 rounded-xl
-                            object-cover border-2
-                            border-gray-700"
+              <Avatar
+                name={user?.name || user?.username || 'User'}
+                src={user?.avatarUrl || user?.profilePic}
+                size="md"
+                className="[&>img]:rounded-xl [&>div]:rounded-xl
+                            [&>img]:border-2 [&>img]:border-gray-700"
               />
               <div className="absolute -bottom-0.5
                                -right-0.5 w-3 h-3
@@ -463,20 +462,25 @@ export default function Sidebar() {
           <div className="flex flex-col items-center
                            gap-2">
             <div className="relative">
-              <img
-                src={
-                  user?.avatarUrl || '/project-management-frontend/public/logo192.png'
-                }
-                alt={user?.name}
-                className="w-9 h-9 rounded-xl
-                            object-cover border-2
-                            border-gray-700
-                            cursor-pointer
-                            hover:border-indigo-400
-                            transition-colors"
+              <button
+                type="button"
+                className="block rounded-xl"
                 title={user?.name}
                 onClick={() => navigate('/profile')}
-              />
+              >
+                <Avatar
+                  name={user?.name || user?.username || 'User'}
+                  src={user?.avatarUrl || user?.profilePic}
+                  size="md"
+                  className="[&>img]:rounded-xl [&>div]:rounded-xl
+                              [&>img]:border-2 [&>img]:border-gray-700
+                              [&>div]:border-2 [&>div]:border-gray-700
+                              hover:[&>img]:border-indigo-400
+                              hover:[&>div]:border-indigo-400
+                              [&>img]:transition-colors
+                              [&>div]:transition-colors"
+                />
+              </button>
               <div className="absolute -bottom-0.5
                                -right-0.5 w-3 h-3
                                bg-green-500 rounded-full

@@ -539,10 +539,11 @@ export default function ChatPanel({
                 <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => setMicEnabled((value) => !value)}
-                    className={`rounded-full border p-2 transition-colors ${micEnabled ? 'border-white/15 bg-white/10' : 'border-red-400/40 bg-red-500/20 text-red-100'}`}
+                    className={`flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors ${micEnabled ? 'border-white/15 bg-white/10' : 'border-red-400/40 bg-red-500/20 text-red-100'}`}
                     title={micEnabled ? 'Mute microphone' : 'Unmute microphone'}
                   >
                     {micEnabled ? <SpeakerWaveIcon className="h-4 w-4" /> : <SpeakerXMarkIcon className="h-4 w-4" />}
+                    <span>{micEnabled ? 'Mute' : 'Unmute'}</span>
                   </button>
                   {callType === 'video' && (
                     <button

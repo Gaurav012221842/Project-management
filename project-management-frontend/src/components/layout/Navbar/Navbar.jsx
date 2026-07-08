@@ -38,6 +38,7 @@ import {
 import {
   selectProjects,
 } from '../../../features/project/projectSlice'
+import Avatar from '../../common/Avatar'
 
 export default function Navbar({
   project,
@@ -464,16 +465,17 @@ export default function Navbar({
                         transition-colors group"
           >
             <div className="relative">
-              <img
-                src={
-                  user?.avatarUrl
-                }
-                alt={user?.name}
-                className="w-8 h-8 rounded-xl
-                            object-cover border-2
-                            border-gray-200
-                            group-hover:border-indigo-300
-                            transition-colors"
+              <Avatar
+                name={user?.name || user?.username || 'User'}
+                src={user?.avatarUrl || user?.profilePic}
+                size="sm"
+                className="[&>img]:rounded-xl [&>div]:rounded-xl
+                            [&>img]:border-2 [&>img]:border-gray-200
+                            [&>div]:border-2 [&>div]:border-gray-200
+                            group-hover:[&>img]:border-indigo-300
+                            group-hover:[&>div]:border-indigo-300
+                            [&>img]:transition-colors
+                            [&>div]:transition-colors"
               />
               <div className="absolute -bottom-0.5
                                -right-0.5 w-2.5 h-2.5
@@ -524,14 +526,11 @@ export default function Navbar({
                                  border-gray-100">
                   <div className="flex items-center
                                    gap-3">
-                    <img
-                      src={
-                        user?.avatarUrl ||
-                        '/project-management-frontend/public/logo192.png'
-                      }
-                      alt={user?.name}
-                      className="w-10 h-10 rounded-xl
-                                  object-cover"
+                    <Avatar
+                      name={user?.name || user?.username || 'User'}
+                      src={user?.avatarUrl || user?.profilePic}
+                      size="md"
+                      className="[&>img]:rounded-xl [&>div]:rounded-xl"
                     />
                     <div>
                       <p className="text-sm font-semibold
