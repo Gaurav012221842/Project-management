@@ -676,6 +676,68 @@ cd project-management-frontend
 npm install
 npm start
 ```
+## Redis Caching
+
+This project uses **Redis** to cache frequently accessed data and reduce database load, improving API response times and overall performance.
+
+### Cached Modules
+- Workspaces
+- Projects
+- Project Statistics
+- Tasks
+- Sprints
+- Analytics
+- Users
+
+### Cache Expiration (TTL)
+
+| Cache | TTL |
+|--------|-----|
+| Workspaces | 30 minutes |
+| Projects | 20 minutes |
+| Project Statistics | 10 minutes |
+| Tasks | 10 minutes |
+| Sprints | 10 minutes |
+| Analytics | 15 minutes |
+| Users | 20 minutes |
+
+### Redis Configuration
+
+Set the following environment variables before running the backend:
+
+```env
+REDIS_HOST=your-redis-host
+REDIS_PORT=6379
+REDIS_PASSWORD=your-redis-password
+```
+
+The application automatically connects to Redis using these environment variables.
+
+### Upstash Redis (Recommended for Development)
+
+This project is compatible with **Upstash Redis**.
+
+If using Upstash:
+
+- Host: `<your-upstash-endpoint>`
+- Port: `6379`
+- Username: `default`
+- Password: `<your-upstash-password>`
+- TLS/SSL: **Enabled**
+
+Make sure SSL is enabled in the Redis client configuration when connecting to Upstash.
+
+### Cache Invalidation
+
+The application automatically clears relevant cache entries whenever data is created, updated, or deleted, ensuring users always receive fresh data.
+
+### Benefits
+
+- Faster API responses
+- Reduced database queries
+- Lower database load
+- Improved scalability
+- Better user experience
 
 UI runs at <http://localhost:3000>.
 
