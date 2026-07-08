@@ -112,6 +112,7 @@ logging:
   level:
     com.projectmanagement: INFO
     org.springframework.security: INFO
+    org.springframework.web.servlet.handler.HandlerMappingIntrospector: ERROR
     org.hibernate.SQL: WARN
     org.hibernate.orm.jdbc.bind: WARN
   pattern:

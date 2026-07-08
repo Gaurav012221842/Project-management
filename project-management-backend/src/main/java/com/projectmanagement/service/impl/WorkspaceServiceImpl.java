@@ -15,6 +15,7 @@ import com.projectmanagement.mapper.WorkspaceMapper;
 import com.projectmanagement.repository.UserRepository;
 import com.projectmanagement.repository.WorkspaceMemberRepository;
 import com.projectmanagement.repository.WorkspaceRepository;
+import com.projectmanagement.service.interfaces.INotificationService;
 import com.projectmanagement.service.interfaces.IWorkspaceService;
 import com.projectmanagement.utils.SlugUtils;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class WorkspaceServiceImpl implements IWorkspaceService {
     private final WorkspaceMemberRepository memberRepository;
     private final UserRepository userRepository;
     private final WorkspaceMapper workspaceMapper;
+    private final INotificationService notificationService;
 
     @Override
     @Transactional
@@ -146,6 +148,13 @@ public class WorkspaceServiceImpl implements IWorkspaceService {
                 .joinedAt(LocalDateTime.now())
                 .build();
         memberRepository.save(member);
+
+        notificationService.sendWorkspaceMemberAddedNotification(
+                newMember,
+                requester.getName(),
+                workspace.getName(),
+                workspace.getId()
+        );
     }
 
     @Override
@@ -206,6 +215,13 @@ public class WorkspaceServiceImpl implements IWorkspaceService {
                 .build();
 
         memberRepository.save(member);
+
+        notificationService.sendWorkspaceInviteNotification(
+                userToInvite,
+                requester.getName(),
+                workspace.getName(),
+                workspace.getId()
+        );
     }
 
 }

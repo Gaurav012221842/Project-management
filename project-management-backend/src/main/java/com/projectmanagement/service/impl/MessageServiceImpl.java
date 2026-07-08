@@ -23,6 +23,8 @@ import com.projectmanagement.service.interfaces
     .IFileStorageService;
 import com.projectmanagement.service.interfaces
     .IMessageService;
+import com.projectmanagement.service.interfaces
+    .INotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -45,6 +47,7 @@ public class MessageServiceImpl
     private final ProjectRepository projectRepository;
     private final UserRepository    userRepository;
     private final IFileStorageService fileStorageService;
+    private final INotificationService notificationService;
 
     // ============================
     // Send Message
@@ -86,6 +89,12 @@ public class MessageServiceImpl
         log.info(
             "Message sent by {} in project {}",
             senderEmail, projectId
+        );
+
+        notificationService.sendMessageNotification(
+            projectId,
+            senderEmail,
+            request.getContent()
         );
 
         return toResponse(saved, sender);

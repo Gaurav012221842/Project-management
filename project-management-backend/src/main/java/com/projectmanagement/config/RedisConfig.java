@@ -1,3 +1,4 @@
+// RedisConfig.java
 package com.projectmanagement.config;
 
 import lombok.extern.slf4j.Slf4j;
@@ -51,14 +52,25 @@ public class RedisConfig {
         return new LettuceConnectionFactory(config, clientConfig.build());
     }
 
+    /**
+     * IMPORTANT: reuses the SAME GenericJackson2JsonRedisSerializer bean defined in
+     * CacheConfig, so RedisTemplate and RedisCacheManager always agree on how
+     * polymorphic type info is written/read. Do NOT build a second serializer here.
+     */
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
+    public RedisTemplate<String, Object> redisTemplate(
+            RedisConnectionFactory connectionFactory,
+            GenericJackson2JsonRedisSerializer redisJsonSerializer) {
+
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
+
         template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        template.setValueSerializer(redisJsonSerializer);
         template.setHashKeySerializer(new StringRedisSerializer());
-        template.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
+        template.setHashValueSerializer(redisJsonSerializer);
+
+        template.afterPropertiesSet();
         return template;
     }
 

@@ -70,4 +70,30 @@ public interface INotificationService {
         String context,
         UUID   referenceId
     );
+
+    void sendWorkspaceInviteNotification(
+        User   invitedUser,
+        String inviterName,
+        String workspaceName,
+        UUID   workspaceId
+    );
+
+    void sendWorkspaceMemberAddedNotification(
+        User   member,
+        String addedByName,
+        String workspaceName,
+        UUID   workspaceId
+    );
+
+    void sendMessageNotification(
+        UUID   projectId,
+        String senderEmail,
+        String preview
+    );
+
+    void sendCallInviteNotification(
+        UUID   projectId,
+        String callerEmail,
+        String callType
+    );
 }

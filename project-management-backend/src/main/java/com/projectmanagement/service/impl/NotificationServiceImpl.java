@@ -7,7 +7,9 @@ import com.projectmanagement.dto.response
 import com.projectmanagement.dto.response.common
     .PageResponse;
 import com.projectmanagement.entity.Notification;
+import com.projectmanagement.entity.Project;
 import com.projectmanagement.entity.User;
+import com.projectmanagement.entity.WorkspaceMember;
 import com.projectmanagement.enums.NotificationType;
 import com.projectmanagement.exception.custom
     .ResourceNotFoundException;
@@ -15,6 +17,9 @@ import com.projectmanagement.exception.custom
     .UnauthorizedException;
 import com.projectmanagement.repository
     .NotificationRepository;
+import com.projectmanagement.repository.ProjectRepository;
+import com.projectmanagement.repository.UserRepository;
+import com.projectmanagement.repository.WorkspaceMemberRepository;
 import com.projectmanagement.service.interfaces
     .INotificationService;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +45,9 @@ public class NotificationServiceImpl
         notificationRepository;
     private final NotificationWebSocketController
         wsController;
+    private final ProjectRepository projectRepository;
+    private final UserRepository userRepository;
+    private final WorkspaceMemberRepository memberRepository;
 
     // ============================
     // Create & Send Notification
@@ -327,6 +335,123 @@ public class NotificationServiceImpl
             NotificationType.MENTION,
             referenceId != null ? referenceId.toString() : null
         );
+    }
+
+    @Override
+    @Async
+    @Transactional
+    public void sendWorkspaceInviteNotification(
+        User   invitedUser,
+        String inviterName,
+        String workspaceName,
+        UUID   workspaceId
+    ) {
+        createNotification(
+            invitedUser,
+            "Workspace invite",
+            inviterName + " invited you to \"" + workspaceName + "\"",
+            NotificationType.WORKSPACE_INVITE,
+            workspaceId != null ? workspaceId.toString() : null
+        );
+    }
+
+    @Override
+    @Async
+    @Transactional
+    public void sendWorkspaceMemberAddedNotification(
+        User   member,
+        String addedByName,
+        String workspaceName,
+        UUID   workspaceId
+    ) {
+        createNotification(
+            member,
+            "Added to workspace",
+            addedByName + " added you to \"" + workspaceName + "\"",
+            NotificationType.WORKSPACE_MEMBER_ADDED,
+            workspaceId != null ? workspaceId.toString() : null
+        );
+    }
+
+    @Override
+    @Async
+    @Transactional
+    public void sendMessageNotification(
+        UUID   projectId,
+        String senderEmail,
+        String preview
+    ) {
+        Project project = projectRepository.findById(projectId)
+            .orElse(null);
+        User sender = senderEmail == null
+            ? null
+            : userRepository.findByEmail(senderEmail).orElse(null);
+
+        if (project == null || sender == null) {
+            return;
+        }
+
+        String messagePreview = preview == null || preview.isBlank()
+            ? "sent a new message"
+            : preview.strip();
+        if (messagePreview.length() > 120) {
+            messagePreview = messagePreview.substring(0, 117) + "...";
+        }
+
+        for (WorkspaceMember member :
+                memberRepository.findByWorkspaceId(project.getWorkspace().getId())) {
+            User recipient = member.getUser();
+            if (recipient.getId().equals(sender.getId())) {
+                continue;
+            }
+
+            createNotification(
+                recipient,
+                "New message",
+                sender.getName() + " in " + project.getName() + ": " + messagePreview,
+                NotificationType.MESSAGE_RECEIVED,
+                projectId.toString()
+            );
+        }
+    }
+
+    @Override
+    @Async
+    @Transactional
+    public void sendCallInviteNotification(
+        UUID   projectId,
+        String callerEmail,
+        String callType
+    ) {
+        Project project = projectRepository.findById(projectId)
+            .orElse(null);
+        User caller = callerEmail == null
+            ? null
+            : userRepository.findByEmail(callerEmail).orElse(null);
+
+        if (project == null || caller == null) {
+            return;
+        }
+
+        String type = "video".equalsIgnoreCase(callType)
+            ? "video"
+            : "audio";
+
+        for (WorkspaceMember member :
+                memberRepository.findByWorkspaceId(project.getWorkspace().getId())) {
+            User recipient = member.getUser();
+            if (recipient.getId().equals(caller.getId())) {
+                continue;
+            }
+
+            createNotification(
+                recipient,
+                "Incoming " + type + " call",
+                caller.getName() + " is calling in " + project.getName(),
+                NotificationType.CALL_INVITE,
+                projectId.toString()
+            );
+        }
     }
 
     // ============================

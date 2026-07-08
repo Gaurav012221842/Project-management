@@ -6,6 +6,8 @@ import com.projectmanagement.dto.response.message
     .MessageResponse;
 import com.projectmanagement.service.interfaces
     .IMessageService;
+import com.projectmanagement.service.interfaces
+    .INotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -24,6 +26,7 @@ import java.util.UUID;
 public class ChatWebSocketController {
 
     private final IMessageService      messageService;
+    private final INotificationService notificationService;
     private final SimpMessagingTemplate messagingTemplate;
 
     // ============================
@@ -127,6 +130,12 @@ public class ChatWebSocketController {
         messagingTemplate.convertAndSend(
             "/topic/project/" + projectId + "/call",
             response
+        );
+
+        notificationService.sendCallInviteNotification(
+            projectId,
+            senderEmail,
+            payload.getType()
         );
     }
 
