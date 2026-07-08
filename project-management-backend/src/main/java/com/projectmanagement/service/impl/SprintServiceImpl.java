@@ -27,6 +27,9 @@ import com.projectmanagement.service.interfaces
     .INotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation
     .Transactional;
@@ -52,6 +55,12 @@ public class SprintServiceImpl
     // ============================
     @Override
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "sprints", allEntries = true),
+        @CacheEvict(value = "projectStats", allEntries = true),
+        @CacheEvict(value = "analytics", allEntries = true),
+        @CacheEvict(value = "users", allEntries = true)
+    })
     public SprintResponse createSprint(
         UUID                projectId,
         CreateSprintRequest request
@@ -97,6 +106,7 @@ public class SprintServiceImpl
     // Get All Sprints
     // ============================
     @Override
+    @Cacheable(value = "sprints", key = "'project:' + #projectId")
     public List<SprintResponse> getSprints(
         UUID projectId
     ) {
@@ -113,6 +123,7 @@ public class SprintServiceImpl
     // Get Sprint By ID
     // ============================
     @Override
+    @Cacheable(value = "sprints", key = "'project:' + #projectId + ':sprint:' + #sprintId")
     public SprintResponse getSprintById(
         UUID projectId,
         UUID sprintId
@@ -128,6 +139,12 @@ public class SprintServiceImpl
     // ============================
     @Override
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "sprints", allEntries = true),
+        @CacheEvict(value = "projectStats", allEntries = true),
+        @CacheEvict(value = "analytics", allEntries = true),
+        @CacheEvict(value = "users", allEntries = true)
+    })
     public SprintResponse updateSprint(
         UUID                projectId,
         UUID                sprintId,
@@ -172,6 +189,13 @@ public class SprintServiceImpl
     // ============================
     @Override
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "sprints", allEntries = true),
+        @CacheEvict(value = "tasks", allEntries = true),
+        @CacheEvict(value = "projectStats", allEntries = true),
+        @CacheEvict(value = "analytics", allEntries = true),
+        @CacheEvict(value = "users", allEntries = true)
+    })
     public void deleteSprint(
         UUID projectId,
         UUID sprintId
@@ -206,6 +230,12 @@ public class SprintServiceImpl
     // ============================
     @Override
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "sprints", allEntries = true),
+        @CacheEvict(value = "projectStats", allEntries = true),
+        @CacheEvict(value = "analytics", allEntries = true),
+        @CacheEvict(value = "users", allEntries = true)
+    })
     public SprintResponse startSprint(
         UUID projectId,
         UUID sprintId
@@ -264,6 +294,13 @@ public class SprintServiceImpl
     // ============================
     @Override
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "sprints", allEntries = true),
+        @CacheEvict(value = "tasks", allEntries = true),
+        @CacheEvict(value = "projectStats", allEntries = true),
+        @CacheEvict(value = "analytics", allEntries = true),
+        @CacheEvict(value = "users", allEntries = true)
+    })
     public SprintResponse completeSprint(
         UUID projectId,
         UUID sprintId

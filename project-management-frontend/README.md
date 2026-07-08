@@ -6,6 +6,22 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 In the project directory, you can run:
 
+## Audio/Video Calls Across Networks
+
+Chat calls use WebRTC. STUN can discover public addresses, which is enough for many same-WiFi or simple NAT cases, but it cannot relay media when users are behind restrictive NATs, mobile carriers, corporate networks, or firewalls.
+
+For reliable calls between users on different networks, configure a TURN relay before building the frontend:
+
+```env
+REACT_APP_WEBRTC_STUN_URLS=stun:stun.l.google.com:19302,stun:stun1.l.google.com:19302
+REACT_APP_WEBRTC_TURN_URLS=turn:your-turn-domain.com:3478?transport=udp,turn:your-turn-domain.com:3478?transport=tcp,turns:your-turn-domain.com:5349?transport=tcp
+REACT_APP_WEBRTC_TURN_USERNAME=your-turn-username
+REACT_APP_WEBRTC_TURN_CREDENTIAL=your-turn-password
+REACT_APP_WEBRTC_ICE_TRANSPORT_POLICY=all
+```
+
+Use a hosted TURN provider or deploy coturn on a public server. The TURN ports must be reachable from the internet, and the React app must be rebuilt after changing `REACT_APP_*` values.
+
 ### `npm start`
 
 Runs the app in the development mode.\

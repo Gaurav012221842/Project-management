@@ -39,7 +39,7 @@ public class AnalyticsServiceImpl
     @Override
     @Cacheable(
         value = "analytics",
-        key = "'overview_' + #projectId"
+        key = "'overview:' + #projectId"
     )
     public ProjectOverviewResponse getProjectOverview(
         UUID projectId
@@ -170,6 +170,10 @@ public class AnalyticsServiceImpl
     // Burndown Chart
     // ============================
     @Override
+    @Cacheable(
+        value = "analytics",
+        key = "'burndown:project:' + #projectId + ':sprint:' + #sprintId"
+    )
     public BurndownResponse getBurndownData(
         UUID projectId,
         UUID sprintId
@@ -272,6 +276,10 @@ public class AnalyticsServiceImpl
     // Velocity Chart
     // ============================
     @Override
+    @Cacheable(
+        value = "analytics",
+        key = "'velocity:' + #projectId"
+    )
     public VelocityResponse getVelocityData(
         UUID projectId
     ) {
@@ -345,6 +353,10 @@ public class AnalyticsServiceImpl
     // Team Performance
     // ============================
     @Override
+    @Cacheable(
+        value = "analytics",
+        key = "'team:' + #projectId"
+    )
     public TeamPerformanceResponse getTeamPerformance(
         UUID projectId
     ) {
@@ -434,6 +446,10 @@ public class AnalyticsServiceImpl
     // Weekly Progress
     // ============================
     @Override
+    @Cacheable(
+        value = "analytics",
+        key = "'weekly:' + #projectId + ':weeks:' + #weeks"
+    )
     public WeeklyProgressResponse getWeeklyProgress(
         UUID projectId,
         Integer weeks
@@ -526,6 +542,10 @@ public class AnalyticsServiceImpl
     // Task Distribution
     // ============================
     @Override
+    @Cacheable(
+        value = "analytics",
+        key = "'distribution:' + #projectId"
+    )
     public TaskDistributionResponse getTaskDistribution(
         UUID projectId
     ) {

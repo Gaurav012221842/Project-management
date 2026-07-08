@@ -10,6 +10,9 @@ import com.projectmanagement.repository.*;
 import com.projectmanagement.service.interfaces.INotificationService;
 import com.projectmanagement.service.interfaces.ITaskService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -34,6 +37,14 @@ public class TaskServiceImpl implements ITaskService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "tasks", allEntries = true),
+            @CacheEvict(value = "projectStats", allEntries = true),
+            @CacheEvict(value = "sprints", allEntries = true),
+            @CacheEvict(value = "analytics", allEntries = true),
+            @CacheEvict(value = "projects", allEntries = true),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public TaskResponse createTask(UUID projectId, CreateTaskRequest request, User user) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", projectId));
@@ -74,6 +85,7 @@ public class TaskServiceImpl implements ITaskService {
     }
 
     @Override
+    @Cacheable(value = "tasks", key = "'project:' + #projectId + ':page:' + #pageable.pageNumber + ':size:' + #pageable.pageSize + ':sort:' + #pageable.sort.toString() + ':user:' + #user.id")
     public PageResponse<TaskResponse> getTasks(UUID projectId, User user, Pageable pageable) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", projectId));
@@ -94,6 +106,7 @@ public class TaskServiceImpl implements ITaskService {
     }
 
     @Override
+    @Cacheable(value = "tasks", key = "'task:' + #id + ':user:' + #user.id")
     public TaskResponse getTaskById(UUID id, User user) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task", "id", id));
@@ -103,6 +116,14 @@ public class TaskServiceImpl implements ITaskService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "tasks", allEntries = true),
+            @CacheEvict(value = "projectStats", allEntries = true),
+            @CacheEvict(value = "sprints", allEntries = true),
+            @CacheEvict(value = "analytics", allEntries = true),
+            @CacheEvict(value = "projects", allEntries = true),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public TaskResponse updateTask(UUID id, UpdateTaskRequest request, User user) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task", "id", id));
@@ -129,6 +150,14 @@ public class TaskServiceImpl implements ITaskService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "tasks", allEntries = true),
+            @CacheEvict(value = "projectStats", allEntries = true),
+            @CacheEvict(value = "sprints", allEntries = true),
+            @CacheEvict(value = "analytics", allEntries = true),
+            @CacheEvict(value = "projects", allEntries = true),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public TaskResponse updateTaskStatus(UUID id, UpdateTaskStatusRequest request, User user) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task", "id", id));
@@ -140,6 +169,14 @@ public class TaskServiceImpl implements ITaskService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "tasks", allEntries = true),
+            @CacheEvict(value = "projectStats", allEntries = true),
+            @CacheEvict(value = "sprints", allEntries = true),
+            @CacheEvict(value = "analytics", allEntries = true),
+            @CacheEvict(value = "projects", allEntries = true),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public TaskResponse assignTask(UUID id, AssignTaskRequest request, User user) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task", "id", id));
@@ -157,6 +194,14 @@ public class TaskServiceImpl implements ITaskService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "tasks", allEntries = true),
+            @CacheEvict(value = "projectStats", allEntries = true),
+            @CacheEvict(value = "sprints", allEntries = true),
+            @CacheEvict(value = "analytics", allEntries = true),
+            @CacheEvict(value = "projects", allEntries = true),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public void deleteTask(UUID id, User user) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task", "id", id));

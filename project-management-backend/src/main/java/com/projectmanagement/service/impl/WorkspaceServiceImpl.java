@@ -18,6 +18,9 @@ import com.projectmanagement.repository.WorkspaceRepository;
 import com.projectmanagement.service.interfaces.IWorkspaceService;
 import com.projectmanagement.utils.SlugUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +39,10 @@ public class WorkspaceServiceImpl implements IWorkspaceService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "workspaces", allEntries = true),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public WorkspaceResponse createWorkspace(CreateWorkspaceRequest request, User owner) {
         String slug = SlugUtils.toSlug(request.getName());
         if (workspaceRepository.existsBySlug(slug)) {
@@ -64,6 +71,7 @@ public class WorkspaceServiceImpl implements IWorkspaceService {
     }
 
     @Override
+    @Cacheable(value = "workspaces", key = "'user:' + #user.id")
     public List<WorkspaceResponse> getUserWorkspaces(User user) {
         return memberRepository.findByUserId(user.getId()).stream()
                 .map(m -> workspaceMapper.toResponse(m.getWorkspace()))
@@ -71,6 +79,7 @@ public class WorkspaceServiceImpl implements IWorkspaceService {
     }
 
     @Override
+    @Cacheable(value = "workspaces", key = "'workspace:' + #id + ':user:' + #user.id")
     public WorkspaceResponse getWorkspaceById(UUID id, User user) {
         Workspace workspace = findWorkspaceAndVerifyAccess(id, user);
         return workspaceMapper.toResponse(workspace);
@@ -78,6 +87,10 @@ public class WorkspaceServiceImpl implements IWorkspaceService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "workspaces", allEntries = true),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public WorkspaceResponse updateWorkspace(UUID id, UpdateWorkspaceRequest request, User user) {
         Workspace workspace = findWorkspaceAndVerifyAccess(id, user);
         if (request.getName() != null) workspace.setName(request.getName());
@@ -88,6 +101,15 @@ public class WorkspaceServiceImpl implements IWorkspaceService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "workspaces", allEntries = true),
+            @CacheEvict(value = "projects", allEntries = true),
+            @CacheEvict(value = "projectStats", allEntries = true),
+            @CacheEvict(value = "tasks", allEntries = true),
+            @CacheEvict(value = "sprints", allEntries = true),
+            @CacheEvict(value = "analytics", allEntries = true),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public void deleteWorkspace(UUID id, User user) {
         Workspace workspace = findWorkspaceAndVerifyAccess(id, user);
         if (!workspace.getOwner().getId().equals(user.getId())) {
@@ -98,6 +120,15 @@ public class WorkspaceServiceImpl implements IWorkspaceService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "workspaces", allEntries = true),
+            @CacheEvict(value = "projects", allEntries = true),
+            @CacheEvict(value = "projectStats", allEntries = true),
+            @CacheEvict(value = "tasks", allEntries = true),
+            @CacheEvict(value = "sprints", allEntries = true),
+            @CacheEvict(value = "analytics", allEntries = true),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public void addMember(UUID workspaceId, AddMemberRequest request, User requester) {
         findWorkspaceAndVerifyAccess(workspaceId, requester);
         User newMember = userRepository.findByEmail(request.getEmail())
@@ -119,6 +150,15 @@ public class WorkspaceServiceImpl implements IWorkspaceService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "workspaces", allEntries = true),
+            @CacheEvict(value = "projects", allEntries = true),
+            @CacheEvict(value = "projectStats", allEntries = true),
+            @CacheEvict(value = "tasks", allEntries = true),
+            @CacheEvict(value = "sprints", allEntries = true),
+            @CacheEvict(value = "analytics", allEntries = true),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public void removeMember(UUID workspaceId, UUID userId, User requester) {
         findWorkspaceAndVerifyAccess(workspaceId, requester);
         memberRepository.deleteByWorkspaceIdAndUserId(workspaceId, userId);
@@ -134,6 +174,15 @@ public class WorkspaceServiceImpl implements IWorkspaceService {
     }
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "workspaces", allEntries = true),
+            @CacheEvict(value = "projects", allEntries = true),
+            @CacheEvict(value = "projectStats", allEntries = true),
+            @CacheEvict(value = "tasks", allEntries = true),
+            @CacheEvict(value = "sprints", allEntries = true),
+            @CacheEvict(value = "analytics", allEntries = true),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public void inviteMember(UUID workspaceId, String email, User requester) {
 
         Workspace workspace = findWorkspaceAndVerifyAccess(workspaceId, requester);

@@ -19,6 +19,9 @@ import {
 } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 
+// Config
+import appConfig from '../../config/appConfig'
+
 // Components
 import ChatHeader   from './ChatHeader'
 import ChatMessages from './ChatMessages'
@@ -227,7 +230,9 @@ export default function ChatPanel({
 
   const createPeerConnection = useCallback(async (type) => {
     const connection = new window.RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      iceServers: appConfig.webRtc.iceServers,
+      iceTransportPolicy: appConfig.webRtc.iceTransportPolicy,
+      iceCandidatePoolSize: 10,
     })
 
     connection.onicecandidate = (event) => {
@@ -255,7 +260,14 @@ export default function ChatPanel({
         setCallState('connected')
       }
 
-      if (connection.connectionState === 'disconnected' || connection.connectionState === 'failed' || connection.connectionState === 'closed') {
+      if (connection.connectionState === 'failed') {
+        toast.error(appConfig.webRtc.iceServers.length > 1
+          ? 'Call connection failed. Please try again.'
+          : 'Call connection failed. Configure a TURN server for calls across different networks.')
+        cleanupCall()
+      }
+
+      if (connection.connectionState === 'disconnected' || connection.connectionState === 'closed') {
         cleanupCall()
       }
     }

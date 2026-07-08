@@ -23,6 +23,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -45,6 +46,7 @@ public class AuthServiceImpl implements IAuthService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "users", allEntries = true)
     public AuthResponse register(
         RegisterRequest request
     ) {
@@ -213,6 +215,7 @@ public class AuthServiceImpl implements IAuthService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "users", allEntries = true)
     public void resetPassword(String token, ResetPasswordRequest request){
         if (token == null || token.isBlank()) {
             throw new BadRequestException("Reset token is required");

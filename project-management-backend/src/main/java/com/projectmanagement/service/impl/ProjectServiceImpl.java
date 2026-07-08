@@ -20,6 +20,9 @@ import com.projectmanagement.repository.WorkspaceMemberRepository;
 import com.projectmanagement.repository.WorkspaceRepository;
 import com.projectmanagement.service.interfaces.IProjectService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -41,6 +44,12 @@ public class ProjectServiceImpl implements IProjectService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "projects", allEntries = true),
+            @CacheEvict(value = "workspaces", allEntries = true),
+            @CacheEvict(value = "analytics", allEntries = true),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public ProjectResponse createProject(UUID workspaceId, CreateProjectRequest request, User user) {
         verifyWorkspaceAccess(workspaceId, user);
         Workspace workspace = workspaceRepository.findById(workspaceId).orElseThrow();
@@ -58,6 +67,7 @@ public class ProjectServiceImpl implements IProjectService {
     }
 
     @Override
+    @Cacheable(value = "projects", key = "'workspace:' + #workspaceId + ':page:' + #page + ':size:' + #size + ':user:' + #user.id")
     public PageResponse<ProjectResponse> getWorkspaceProjects(UUID workspaceId, int page, int size, User user) {
         verifyWorkspaceAccess(workspaceId, user);
         Page<Project> pageResult = projectRepository.findByWorkspaceId(workspaceId, PageRequest.of(page, size));
@@ -73,6 +83,7 @@ public class ProjectServiceImpl implements IProjectService {
     }
 
     @Override
+    @Cacheable(value = "projects", key = "'project:' + #projectId + ':workspace:' + #workspaceId + ':user:' + #user.id")
     public ProjectResponse getProjectById(UUID workspaceId, UUID projectId, User user) {
         verifyWorkspaceAccess(workspaceId, user);
         Project project = projectRepository.findById(projectId)
@@ -82,6 +93,12 @@ public class ProjectServiceImpl implements IProjectService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "projects", allEntries = true),
+            @CacheEvict(value = "projectStats", allEntries = true),
+            @CacheEvict(value = "analytics", allEntries = true),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public ProjectResponse updateProject(UUID workspaceId, UUID projectId, UpdateProjectRequest request, User user) {
         verifyWorkspaceAccess(workspaceId, user);
         Project project = projectRepository.findById(projectId)
@@ -96,6 +113,14 @@ public class ProjectServiceImpl implements IProjectService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "projects", allEntries = true),
+            @CacheEvict(value = "projectStats", allEntries = true),
+            @CacheEvict(value = "tasks", allEntries = true),
+            @CacheEvict(value = "sprints", allEntries = true),
+            @CacheEvict(value = "analytics", allEntries = true),
+            @CacheEvict(value = "users", allEntries = true)
+    })
     public void deleteProject(UUID workspaceId, UUID projectId, User user) {
         verifyWorkspaceAccess(workspaceId, user);
         Project project = projectRepository.findById(projectId)
@@ -104,6 +129,7 @@ public class ProjectServiceImpl implements IProjectService {
     }
 
     @Override
+    @Cacheable(value = "projectStats", key = "'project:' + #id + ':user:' + #user.id")
     public ProjectStatsResponse getProjectStats(UUID id, User user) {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
@@ -122,6 +148,7 @@ public class ProjectServiceImpl implements IProjectService {
     }
 
     @Override
+    @Cacheable(value = "projects", key = "'activity:' + #projectId + ':page:' + #page + ':size:' + #size + ':user:' + #user.id")
     public PageResponse<ActivityLogResponse> getProjectActivity(UUID projectId, int page, int size, User user) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", projectId));

@@ -21,6 +21,9 @@ import com.projectmanagement.service.interfaces.IUserService;
 import com.projectmanagement.enums.SprintStatus;
 import com.projectmanagement.enums.TaskStatus;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -46,6 +49,7 @@ public class UserServiceImpl implements IUserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
+    @Cacheable(value = "users", key = "'current:' + #user.id")
     public UserResponse getCurrentUser(User user) {
         UserResponse response = userMapper.toResponse(user);
         response.setProfilePic(fileStorageService.resolveFileUrl(response.getProfilePic()));
@@ -53,6 +57,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
+    @Cacheable(value = "users", key = "'id:' + #id")
     public UserResponse getUserById(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
@@ -63,6 +68,13 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "users", allEntries = true),
+            @CacheEvict(value = "workspaces", allEntries = true),
+            @CacheEvict(value = "projects", allEntries = true),
+            @CacheEvict(value = "tasks", allEntries = true),
+            @CacheEvict(value = "analytics", allEntries = true)
+    })
     public UserResponse updateProfile(User user, String fullName, String avatarUrl) {
         if (fullName != null) user.setName(fullName);
         if (avatarUrl != null) user.setProfilePic(avatarUrl);
@@ -73,6 +85,7 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "users", allEntries = true)
     public void changePassword(User user, String currentPassword, String newPassword) {
         User persistedUser = userRepository.findById(user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", user.getId()));
@@ -91,6 +104,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
+    @Cacheable(value = "users", key = "'activity:' + #user.id + ':page:' + #page + ':size:' + #size")
     public PageResponse<ActivityLogResponse> getUserActivity(
             User user,
             int page,
@@ -128,6 +142,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
+    @Cacheable(value = "users", key = "'stats:' + #user.id")
     public UserStatsResponse getUserStats(User user) {
         List<Task> tasks = taskRepository.findByAssigneeId(user.getId());
         long totalTasks = tasks.size();
@@ -174,6 +189,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
+    @Cacheable(value = "users", key = "'search:' + #query.toLowerCase().trim()", condition = "#query != null && !#query.isBlank()")
     public java.util.List<UserSummaryResponse> searchUsers(String query) {
         if (query == null || query.isBlank()) {
             return java.util.Collections.emptyList();
