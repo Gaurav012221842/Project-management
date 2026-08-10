@@ -65,7 +65,8 @@ public class Project extends BaseEntity {
 
     @OneToMany(
         mappedBy = "project",
-        cascade = CascadeType.ALL
+        cascade = CascadeType.ALL,
+        orphanRemoval = true  // FIX: Added orphanRemoval to prevent orphaned sprint records
     )
     @Builder.Default
     private List<Sprint> sprints = 
@@ -73,7 +74,8 @@ public class Project extends BaseEntity {
 
     @OneToMany(
         mappedBy = "project",
-        cascade = CascadeType.ALL
+        cascade = CascadeType.ALL,
+        orphanRemoval = true  // FIX: Added orphanRemoval to prevent orphaned task records
     )
     @Builder.Default
     private List<Task> tasks = 

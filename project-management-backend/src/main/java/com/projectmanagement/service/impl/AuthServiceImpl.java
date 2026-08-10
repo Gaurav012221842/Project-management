@@ -78,6 +78,7 @@ public class AuthServiceImpl implements IAuthService {
             jwtService.generateRefreshToken(savedUser);
 
         savedUser.setRefreshToken(refreshToken);
+        userRepository.save(savedUser); // FIX: persist the refresh token
 
         // Send welcome email async
         emailService.sendWelcomeEmail(
@@ -246,6 +247,18 @@ public class AuthServiceImpl implements IAuthService {
 
         userRepository.save(user);
         passwordResetTokenRepository.save(resetToken);
+    }
+
+    @Override
+    @Transactional
+    public void logout(User user) {
+        User persistedUser = userRepository.findById(user.getId())
+            .orElse(null);
+        if (persistedUser != null) {
+            persistedUser.setRefreshToken(null);
+            userRepository.save(persistedUser);
+            log.info("User logged out: {}", persistedUser.getId());
+        }
     }
 
     private String generateResetToken(){

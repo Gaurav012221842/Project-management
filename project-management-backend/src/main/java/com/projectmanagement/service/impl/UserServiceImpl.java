@@ -31,6 +31,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -105,21 +106,12 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     @Cacheable(value = "users", key = "'activity:' + #user.id + ':page:' + #page + ':size:' + #size")
-    public PageResponse<ActivityLogResponse> getUserActivity(
-            User user,
-            int page,
-            int size
-    ) {
+    public PageResponse<ActivityLogResponse> getUserActivity(User user, int page, int size) {
         PageRequest pageRequest = PageRequest.of(
-                page,
-                size,
-                Sort.by(Sort.Direction.DESC, "createdAt")
+                page, size, Sort.by(Sort.Direction.DESC, "createdAt")
         );
         Page<com.projectmanagement.entity.ActivityLog> activityPage =
-                activityLogRepository.findByUserIdOrderByCreatedAtDesc(
-                        user.getId(),
-                        pageRequest
-                );
+                activityLogRepository.findByUserIdOrderByCreatedAtDesc(user.getId(), pageRequest);
         Page<ActivityLogResponse> responsePage = activityPage.map(activity -> ActivityLogResponse.builder()
                 .id(activity.getId())
                 .action(activity.getAction())
@@ -154,9 +146,7 @@ public class UserServiceImpl implements IUserService {
                         || task.getStatus() == TaskStatus.IN_REVIEW)
                 .count();
         long totalStoryPoints = tasks.stream()
-                .mapToLong(task -> task.getStoryPoints() == null
-                        ? 0L
-                        : task.getStoryPoints())
+                .mapToLong(task -> task.getStoryPoints() == null ? 0L : task.getStoryPoints())
                 .sum();
         long totalComments = commentRepository.countByAuthorId(user.getId());
         long totalProjects = projectRepository.countByOwnerId(user.getId());
@@ -164,18 +154,9 @@ public class UserServiceImpl implements IUserService {
                 ? 0
                 : (int) Math.round(100.0 * completedTasks / totalTasks);
 
-        long completedSprints = 0L;
-        List<com.projectmanagement.entity.Project> ownedProjects =
-                projectRepository.findByOwnerId(user.getId());
-        if (!ownedProjects.isEmpty()) {
-            completedSprints = ownedProjects.stream()
-                    .mapToLong(project -> sprintRepository
-                            .countByProjectIdAndStatus(
-                                    project.getId(),
-                                    SprintStatus.COMPLETED)
-                            )
-                    .sum();
-        }
+        // FIX: Single DB query instead of N per-project queries (eliminates N+1)
+        long completedSprints = sprintRepository.countByProjectOwnerIdAndStatus(
+                user.getId(), SprintStatus.COMPLETED);
 
         return UserStatsResponse.builder()
                 .totalProjects(totalProjects)
@@ -190,9 +171,9 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     @Cacheable(value = "users", key = "'search:' + #query.toLowerCase().trim()", condition = "#query != null && !#query.isBlank()")
-    public java.util.List<UserSummaryResponse> searchUsers(String query) {
+    public List<UserSummaryResponse> searchUsers(String query) {
         if (query == null || query.isBlank()) {
-            return java.util.Collections.emptyList();
+            return Collections.emptyList();
         }
 
         return userRepository.searchUsers(query).stream()

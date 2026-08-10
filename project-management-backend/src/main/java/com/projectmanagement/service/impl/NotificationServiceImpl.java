@@ -62,6 +62,24 @@ public class NotificationServiceImpl
         NotificationType type,
         String           referenceId
     ) {
+        return createNotification(
+            recipient,
+            title,
+            message,
+            type,
+            referenceId,
+            null
+        );
+    }
+
+    private NotificationResponse createNotification(
+        User             recipient,
+        String           title,
+        String           message,
+        NotificationType type,
+        String           referenceId,
+        String           referenceType
+    ) {
         Notification notification =
             Notification.builder()
                 .user(recipient)
@@ -69,6 +87,7 @@ public class NotificationServiceImpl
                 .message(message)
                 .type(type)
                 .referenceId(referenceId)
+                .referenceType(referenceType)
                 .isRead(false)
                 .build();
 
@@ -449,7 +468,8 @@ public class NotificationServiceImpl
                 "Incoming " + type + " call",
                 caller.getName() + " is calling in " + project.getName(),
                 NotificationType.CALL_INVITE,
-                projectId.toString()
+                projectId.toString(),
+                type
             );
         }
     }

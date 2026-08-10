@@ -29,7 +29,7 @@ import {
 } from '@heroicons/react/24/solid'
 import {
   selectUser,
-  logout,
+  logoutUser,
 } from '../../../features/auth/authSlice'
 import {
   selectProjects,
@@ -112,8 +112,8 @@ export default function Sidebar() {
     p => p.id === projectId
   )
 
-  const handleLogout = () => {
-    dispatch(logout())
+  const handleLogout = async () => {
+    await dispatch(logoutUser())
     navigate('/login')
   }
 

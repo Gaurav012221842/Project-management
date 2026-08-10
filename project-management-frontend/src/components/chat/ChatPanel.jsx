@@ -50,7 +50,8 @@ import { useWebSocket } from '../../hooks/useWebSocket'
 
 export default function ChatPanel({
   isOpen,
-  onClose
+  onClose,
+  incomingCall,
 }) {
   const dispatch      = useDispatch()
   const { projectId } = useParams()
@@ -67,10 +68,14 @@ export default function ChatPanel({
   const [isTyping, setIsTyping] = useState(false)
   const [activeCall, setActiveCall] = useState(null)
   const [callState, setCallState] = useState('idle')
+  const [callRole, setCallRole] = useState(null)
   const [callType, setCallType] = useState('audio')
   const [micEnabled, setMicEnabled] = useState(true)
   const [cameraEnabled, setCameraEnabled] = useState(true)
   const [remoteMediaReady, setRemoteMediaReady] = useState(false)
+  const [attachedFile, setAttachedFile] = useState(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [isUploading, setIsUploading] = useState(false)
   const typingTimeoutRef        = useRef(null)
   const localVideoRef           = useRef(null)
   const remoteVideoRef          = useRef(null)
@@ -83,6 +88,7 @@ export default function ChatPanel({
   const handledRemoteAnswerRef  = useRef('')
   const currentUserRef          = useRef(currentUser)
   const callStateRef            = useRef(callState)
+  const callRoleRef             = useRef(callRole)
   const callTypeRef             = useRef(callType)
 
   const isOwnCallEvent = useCallback((data) => {
@@ -111,7 +117,11 @@ export default function ChatPanel({
 
   const handleIncomingCall = useCallback((data) => {
     if (!data?.event || isOwnCallEvent(data)) return
-    setActiveCall(data)
+    if (callRoleRef.current === 'caller' && data.event === 'REQUEST') return
+    if (data.event === 'REQUEST' && data.from?.toLowerCase() === currentUserRef.current?.email?.toLowerCase()) {
+      return
+    }
+    setActiveCall({ ...data, source: 'socket' })
   }, [isOwnCallEvent])
 
   const { isConnected, sendMessage, sendTyping, sendCallRequest, sendCallEvent } =
@@ -153,16 +163,29 @@ export default function ChatPanel({
   // ============================
   const handleSendMessage = useCallback((
     content,
-    type = 'TEXT'
+    type = 'TEXT',
+    fileUrl = null,
+    fileName = null
   ) => {
-    if (!content.trim()) return
-    sendMessage(content, type)
+    const text = content?.trim() || ''
+    if (!text && !fileUrl) return
+
+    sendMessage(
+      text || fileName || 'Attachment',
+      fileUrl ? type : 'TEXT',
+      fileUrl,
+      fileName
+    )
 
     // Stop typing
     if (isTyping) {
       setIsTyping(false)
       sendTyping(false)
     }
+
+    setAttachedFile(null)
+    setUploadProgress(0)
+    setIsUploading(false)
   }, [sendMessage, sendTyping, isTyping])
 
   // ============================
@@ -184,6 +207,74 @@ export default function ChatPanel({
     }, 2000)
   }, [isTyping, sendTyping])
 
+  const handleUploadFile = useCallback((file) => {
+    if (!file || !projectId) return
+
+    setAttachedFile({
+      fileName: file.name,
+      messageType: file.type.startsWith('image/') ? 'IMAGE' : 'FILE',
+      fileUrl: null,
+      fileType: file.type,
+    })
+    setIsUploading(true)
+    setUploadProgress(0)
+
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', `${process.env.REACT_APP_API_URL || 'http://localhost:8081'}/api/v1/projects/${projectId}/messages/upload`)
+    xhr.setRequestHeader('Authorization', `Bearer ${localStorage.getItem('token')}`)
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        setUploadProgress(Math.round((event.loaded / event.total) * 100))
+      }
+    }
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          const result = JSON.parse(xhr.responseText)
+          const payload = result?.data
+          if (!payload?.fileUrl) {
+            throw new Error('Invalid upload response')
+          }
+
+          setAttachedFile({
+            fileName: payload.fileName || file.name,
+            messageType: payload.messageType || (file.type.startsWith('image/') ? 'IMAGE' : 'FILE'),
+            fileUrl: payload.fileUrl,
+            fileType: file.type,
+          })
+          setUploadProgress(100)
+          setIsUploading(false)
+        } catch (err) {
+          setAttachedFile(null)
+          setIsUploading(false)
+          toast.error(err.message || 'Invalid upload response')
+        }
+      } else {
+        setAttachedFile(null)
+        setIsUploading(false)
+        try {
+          const errorBody = JSON.parse(xhr.responseText)
+          throw new Error(errorBody?.message || 'Upload failed')
+        } catch (err) {
+          toast.error(err.message || 'Upload failed')
+        }
+      }
+    }
+
+    xhr.onerror = () => {
+      setAttachedFile(null)
+      setIsUploading(false)
+      toast.error('File upload failed')
+    }
+
+    xhr.send(formData)
+  }, [projectId])
+
   const cleanupCall = useCallback(() => {
     peerConnectionRef.current?.close()
     peerConnectionRef.current = null
@@ -196,6 +287,9 @@ export default function ChatPanel({
     handledRemoteAnswerRef.current = ''
     setRemoteMediaReady(false)
     setCallState('idle')
+    callStateRef.current = 'idle'
+    setCallRole(null)
+    callRoleRef.current = null
     setActiveCall(null)
     setMicEnabled(true)
     setCameraEnabled(true)
@@ -290,8 +384,11 @@ export default function ChatPanel({
 
     const label = type === 'video' ? 'Video' : 'Audio'
     setCallType(type)
+    setCallRole('caller')
+    callRoleRef.current = 'caller'
     setCallState('calling')
-    setActiveCall({ type, from: currentUser?.email || 'You', message: `${label} call requested` })
+    callStateRef.current = 'calling'
+    setActiveCall({ type, from: currentUser?.email || 'You', message: `${label} call requested`, source: 'local' })
 
     const stream = await ensureLocalMedia(type)
     if (!stream) {
@@ -308,6 +405,7 @@ export default function ChatPanel({
   const handleAcceptCall = useCallback(async () => {
     if (!activeCall) return
     setCallState('connecting')
+    callStateRef.current = 'connecting'
     const stream = await ensureLocalMedia(callType)
     if (!stream) {
       setCallState('idle')
@@ -338,6 +436,25 @@ export default function ChatPanel({
   }, [currentUser])
 
   useEffect(() => {
+    if (incomingCall && callStateRef.current === 'idle') {
+      const callData = {
+        event: 'REQUEST',
+        type: incomingCall.referenceType || 'audio',
+        from: incomingCall.message
+          ? incomingCall.message.split(' in ')[0]
+          : incomingCall.title || 'Unknown',
+        message: incomingCall.message || incomingCall.title,
+        source: 'local',
+      }
+      setCallType(callData.type || 'audio')
+      callTypeRef.current = callData.type || 'audio'
+      setActiveCall(callData)
+      setCallRole('callee')
+      callRoleRef.current = 'callee'
+      setCallState('incoming')
+      callStateRef.current = 'incoming'
+    }
+
     const handleCallEvent = async (data) => {
       if (!data?.event || isOwnCallEvent(data)) return
 
@@ -356,6 +473,7 @@ export default function ChatPanel({
         }
 
         setCallType(data.type || 'audio')
+        setCallRole('callee')
         setCallState('incoming')
         toast.success(data.message || `Incoming ${data.type || 'call'} from ${data.from}`)
         return
@@ -367,7 +485,7 @@ export default function ChatPanel({
         return
       }
 
-      if (data.event === 'ACCEPT' && callStateRef.current === 'calling') {
+      if (data.event === 'ACCEPT' && callStateRef.current === 'calling' && callRole === 'caller') {
         if (offerSentRef.current) return
 
         setCallState('connecting')
@@ -451,12 +569,18 @@ export default function ChatPanel({
       }
     }
 
-    handleCallEvent(activeCall)
-  }, [activeCall, applyPendingIceCandidates, cleanupCall, createPeerConnection, ensureLocalMedia, isOwnCallEvent, sendCallEvent])
+    if (activeCall?.source === 'socket') {
+      handleCallEvent(activeCall)
+    }
+  }, [activeCall, applyPendingIceCandidates, callRole, cleanupCall, createPeerConnection, ensureLocalMedia, isOwnCallEvent, sendCallEvent])
 
   useEffect(() => {
     callStateRef.current = callState
   }, [callState])
+
+  useEffect(() => {
+    callRoleRef.current = callRole
+  }, [callRole])
 
   useEffect(() => {
     callTypeRef.current = callType
@@ -601,7 +725,7 @@ export default function ChatPanel({
                 )}
 
                 <div className="mt-3 flex items-center justify-center gap-2">
-                  {callState === 'incoming' ? (
+                  {callState === 'incoming' && callRole === 'callee' ? (
                     <>
                       <button
                         onClick={handleDeclineCall}
@@ -655,8 +779,17 @@ export default function ChatPanel({
           {/* Input */}
           <ChatInput
             onSendMessage={handleSendMessage}
+            onUploadFile={handleUploadFile}
             onTyping={handleTypingStart}
             isConnected={isConnected}
+            attachedFile={attachedFile}
+            isUploading={isUploading}
+            uploadProgress={uploadProgress}
+            onRemoveAttachment={() => {
+              setAttachedFile(null)
+              setUploadProgress(0)
+              setIsUploading(false)
+            }}
           />
         </motion.div>
       )}

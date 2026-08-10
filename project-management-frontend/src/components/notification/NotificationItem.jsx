@@ -128,9 +128,14 @@ export default function NotificationItem({
           )
           break
         case 'MESSAGE_RECEIVED':
-        case 'CALL_INVITE':
           navigate(
             `/projects/${notification.referenceId}/chat`
+          )
+          break
+        case 'CALL_INVITE':
+          navigate(
+            `/projects/${notification.referenceId}/chat`,
+            { state: { incomingCall: notification } }
           )
           break
         case 'WORKSPACE_INVITE':

@@ -1,38 +1,30 @@
 package com.projectmanagement.service.impl;
 
-import com.projectmanagement.dto.request.sprint
-    .CreateSprintRequest;
-import com.projectmanagement.dto.request.sprint
-    .UpdateSprintRequest;
-import com.projectmanagement.dto.response.sprint
-    .SprintResponse;
+import com.projectmanagement.dto.request.sprint.CreateSprintRequest;
+import com.projectmanagement.dto.request.sprint.UpdateSprintRequest;
+import com.projectmanagement.dto.response.sprint.SprintResponse;
 import com.projectmanagement.entity.Project;
 import com.projectmanagement.entity.Sprint;
 import com.projectmanagement.entity.Task;
+import com.projectmanagement.entity.User;
 import com.projectmanagement.enums.SprintStatus;
 import com.projectmanagement.enums.TaskStatus;
-import com.projectmanagement.exception.custom
-    .BadRequestException;
-import com.projectmanagement.exception.custom
-    .ResourceNotFoundException;
-import com.projectmanagement.repository
-    .ProjectRepository;
-import com.projectmanagement.repository
-    .SprintRepository;
-import com.projectmanagement.repository
-    .TaskRepository;
-import com.projectmanagement.service.interfaces
-    .ISprintService;
-import com.projectmanagement.service.interfaces
-    .INotificationService;
+import com.projectmanagement.exception.custom.BadRequestException;
+import com.projectmanagement.exception.custom.ResourceNotFoundException;
+import com.projectmanagement.exception.custom.UnauthorizedException;
+import com.projectmanagement.repository.ProjectRepository;
+import com.projectmanagement.repository.SprintRepository;
+import com.projectmanagement.repository.TaskRepository;
+import com.projectmanagement.repository.WorkspaceMemberRepository;
+import com.projectmanagement.service.interfaces.ISprintService;
+import com.projectmanagement.service.interfaces.INotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation
-    .Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,13 +34,14 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class SprintServiceImpl
-    implements ISprintService {
+public class SprintServiceImpl implements ISprintService {
 
-    private final SprintRepository      sprintRepository;
-    private final ProjectRepository     projectRepository;
-    private final TaskRepository        taskRepository;
-    private final INotificationService  notificationService;
+    private final SprintRepository              sprintRepository;
+    private final ProjectRepository             projectRepository;
+    private final TaskRepository                taskRepository;
+    private final INotificationService          notificationService;
+    // FIX: Injected to verify workspace membership on all sprint operations
+    private final WorkspaceMemberRepository     workspaceMemberRepository;
 
     // ============================
     // Create Sprint
@@ -61,26 +54,17 @@ public class SprintServiceImpl
         @CacheEvict(value = "analytics", allEntries = true),
         @CacheEvict(value = "users", allEntries = true)
     })
-    public SprintResponse createSprint(
-        UUID                projectId,
-        CreateSprintRequest request
-    ) {
+    public SprintResponse createSprint(UUID projectId, CreateSprintRequest request, User user) {
         Project project = findProject(projectId);
+        // FIX: Verify user has access to this project's workspace
+        verifyProjectAccess(project, user);
 
-        // Validate dates
-        if (request.getEndDate()
-                .isBefore(request.getStartDate())) {
-            throw new BadRequestException(
-                "End date must be after start date"
-            );
+        if (request.getEndDate().isBefore(request.getStartDate())) {
+            throw new BadRequestException("End date must be after start date");
         }
 
-        // Check name uniqueness
-        if (sprintRepository.existsByNameAndProjectId(
-                request.getName(), projectId)) {
-            throw new BadRequestException(
-                "Sprint name already exists"
-            );
+        if (sprintRepository.existsByNameAndProjectId(request.getName(), projectId)) {
+            throw new BadRequestException("Sprint name already exists");
         }
 
         Sprint sprint = Sprint.builder()
@@ -94,10 +78,7 @@ public class SprintServiceImpl
 
         Sprint saved = sprintRepository.save(sprint);
 
-        log.info(
-            "Sprint created: {} in project: {}",
-            saved.getId(), projectId
-        );
+        log.info("Sprint created: {} in project: {}", saved.getId(), projectId);
 
         return toResponse(saved);
     }
@@ -106,11 +87,11 @@ public class SprintServiceImpl
     // Get All Sprints
     // ============================
     @Override
-    @Cacheable(value = "sprints", key = "'project:' + #projectId")
-    public List<SprintResponse> getSprints(
-        UUID projectId
-    ) {
-        findProject(projectId);
+    @Cacheable(value = "sprints", key = "'project:' + #projectId + ':user:' + #user.id")
+    public List<SprintResponse> getSprints(UUID projectId, User user) {
+        Project project = findProject(projectId);
+        // FIX: Verify user has access
+        verifyProjectAccess(project, user);
 
         return sprintRepository
             .findByProjectIdOrderByStartDate(projectId)
@@ -123,14 +104,11 @@ public class SprintServiceImpl
     // Get Sprint By ID
     // ============================
     @Override
-    @Cacheable(value = "sprints", key = "'project:' + #projectId + ':sprint:' + #sprintId")
-    public SprintResponse getSprintById(
-        UUID projectId,
-        UUID sprintId
-    ) {
-        Sprint sprint = findSprint(
-            projectId, sprintId
-        );
+    @Cacheable(value = "sprints", key = "'project:' + #projectId + ':sprint:' + #sprintId + ':user:' + #user.id")
+    public SprintResponse getSprintById(UUID projectId, UUID sprintId, User user) {
+        Sprint sprint = findSprint(projectId, sprintId);
+        // FIX: Verify user has access
+        verifyProjectAccess(sprint.getProject(), user);
         return toResponse(sprint);
     }
 
@@ -145,24 +123,16 @@ public class SprintServiceImpl
         @CacheEvict(value = "analytics", allEntries = true),
         @CacheEvict(value = "users", allEntries = true)
     })
-    public SprintResponse updateSprint(
-        UUID                projectId,
-        UUID                sprintId,
-        UpdateSprintRequest request
-    ) {
-        Sprint sprint = findSprint(
-            projectId, sprintId
-        );
+    public SprintResponse updateSprint(UUID projectId, UUID sprintId, UpdateSprintRequest request, User user) {
+        Sprint sprint = findSprint(projectId, sprintId);
+        // FIX: Verify user has access
+        verifyProjectAccess(sprint.getProject(), user);
 
-        if (sprint.getStatus() == SprintStatus.COMPLETED
-            && request.getStartDate() != null) {
-            throw new BadRequestException(
-                "Cannot update dates of completed sprint"
-            );
+        if (sprint.getStatus() == SprintStatus.COMPLETED && request.getStartDate() != null) {
+            throw new BadRequestException("Cannot update dates of completed sprint");
         }
 
-        if (request.getName() != null &&
-            !request.getName().isEmpty()) {
+        if (request.getName() != null && !request.getName().isEmpty()) {
             sprint.setName(request.getName());
         }
         if (request.getGoal() != null) {
@@ -172,11 +142,8 @@ public class SprintServiceImpl
             sprint.setStartDate(request.getStartDate());
         }
         if (request.getEndDate() != null) {
-            if (request.getEndDate()
-                    .isBefore(sprint.getStartDate())) {
-                throw new BadRequestException(
-                    "End date must be after start date"
-                );
+            if (request.getEndDate().isBefore(sprint.getStartDate())) {
+                throw new BadRequestException("End date must be after start date");
             }
             sprint.setEndDate(request.getEndDate());
         }
@@ -196,33 +163,23 @@ public class SprintServiceImpl
         @CacheEvict(value = "analytics", allEntries = true),
         @CacheEvict(value = "users", allEntries = true)
     })
-    public void deleteSprint(
-        UUID projectId,
-        UUID sprintId
-    ) {
-        Sprint sprint = findSprint(
-            projectId, sprintId
-        );
+    public void deleteSprint(UUID projectId, UUID sprintId, User user) {
+        Sprint sprint = findSprint(projectId, sprintId);
+        // FIX: Verify user has access
+        verifyProjectAccess(sprint.getProject(), user);
 
         if (sprint.getStatus() == SprintStatus.ACTIVE) {
-            throw new BadRequestException(
-                "Cannot delete an active sprint. " +
-                "Complete it first."
-            );
+            throw new BadRequestException("Cannot delete an active sprint. Complete it first.");
         }
 
         // Move tasks to backlog
-        List<Task> tasks =
-            taskRepository.findBySprintId(sprint.getId());
+        List<Task> tasks = taskRepository.findBySprintId(sprint.getId());
         tasks.forEach(t -> t.setSprint(null));
         taskRepository.saveAll(tasks);
 
         sprintRepository.delete(sprint);
 
-        log.info(
-            "Sprint deleted: {} in project: {}",
-            sprintId, projectId
-        );
+        log.info("Sprint deleted: {} in project: {}", sprintId, projectId);
     }
 
     // ============================
@@ -236,31 +193,18 @@ public class SprintServiceImpl
         @CacheEvict(value = "analytics", allEntries = true),
         @CacheEvict(value = "users", allEntries = true)
     })
-    public SprintResponse startSprint(
-        UUID projectId,
-        UUID sprintId
-    ) {
-        Sprint sprint = findSprint(
-            projectId, sprintId
-        );
+    public SprintResponse startSprint(UUID projectId, UUID sprintId, User user) {
+        Sprint sprint = findSprint(projectId, sprintId);
+        // FIX: Verify user has access
+        verifyProjectAccess(sprint.getProject(), user);
 
         if (sprint.getStatus() != SprintStatus.PLANNED) {
-            throw new BadRequestException(
-                "Only planned sprints can be started"
-            );
+            throw new BadRequestException("Only planned sprints can be started");
         }
 
-        // Check no active sprint
-        Optional<Sprint> activeSprint =
-            sprintRepository.findByProjectIdAndStatus(
-                projectId, SprintStatus.ACTIVE
-            );
-
+        Optional<Sprint> activeSprint = sprintRepository.findByProjectIdAndStatus(projectId, SprintStatus.ACTIVE);
         if (activeSprint.isPresent()) {
-            throw new BadRequestException(
-                "A sprint is already active. " +
-                "Complete it before starting another."
-            );
+            throw new BadRequestException("A sprint is already active. Complete it before starting another.");
         }
 
         sprint.setStatus(SprintStatus.ACTIVE);
@@ -268,23 +212,14 @@ public class SprintServiceImpl
 
         // Notify project members
         Project project = sprint.getProject();
-        List<com.projectmanagement.entity.User>
-            members = project.getMembers()
+        List<com.projectmanagement.entity.User> members = project.getMembers()
                 .stream()
                 .map(pm -> pm.getUser())
                 .collect(Collectors.toList());
 
-        notificationService
-            .sendSprintStartedNotification(
-                members,
-                sprint.getName(),
-                sprint.getProject().getId()
-            );
+        notificationService.sendSprintStartedNotification(members, sprint.getName(), sprint.getProject().getId());
 
-        log.info(
-            "Sprint started: {} in project: {}",
-            sprintId, projectId
-        );
+        log.info("Sprint started: {} in project: {}", sprintId, projectId);
 
         return toResponse(saved);
     }
@@ -301,27 +236,19 @@ public class SprintServiceImpl
         @CacheEvict(value = "analytics", allEntries = true),
         @CacheEvict(value = "users", allEntries = true)
     })
-    public SprintResponse completeSprint(
-        UUID projectId,
-        UUID sprintId
-    ) {
-        Sprint sprint = findSprint(
-            projectId, sprintId
-        );
+    public SprintResponse completeSprint(UUID projectId, UUID sprintId, User user) {
+        Sprint sprint = findSprint(projectId, sprintId);
+        // FIX: Verify user has access
+        verifyProjectAccess(sprint.getProject(), user);
 
         if (sprint.getStatus() != SprintStatus.ACTIVE) {
-            throw new BadRequestException(
-                "Only active sprints can be completed"
-            );
+            throw new BadRequestException("Only active sprints can be completed");
         }
 
         // Move incomplete tasks to backlog
-        List<Task> incompleteTasks =
-            taskRepository.findBySprintId(sprint.getId())
+        List<Task> incompleteTasks = taskRepository.findBySprintId(sprint.getId())
                 .stream()
-                .filter(t ->
-                    t.getStatus() != TaskStatus.DONE
-                )
+                .filter(t -> t.getStatus() != TaskStatus.DONE)
                 .collect(Collectors.toList());
 
         incompleteTasks.forEach(t -> t.setSprint(null));
@@ -330,12 +257,7 @@ public class SprintServiceImpl
         sprint.setStatus(SprintStatus.COMPLETED);
         Sprint saved = sprintRepository.save(sprint);
 
-        log.info(
-            "Sprint completed: {} | {} tasks moved " +
-            "to backlog",
-            sprintId,
-            incompleteTasks.size()
-        );
+        log.info("Sprint completed: {} | {} tasks moved to backlog", sprintId, incompleteTasks.size());
 
         return toResponse(saved);
     }
@@ -344,65 +266,49 @@ public class SprintServiceImpl
     // Helpers
     // ============================
     private Project findProject(UUID projectId) {
-        return projectRepository
-            .findById(projectId)
-            .orElseThrow(() ->
-                new ResourceNotFoundException(
-                    "Project not found"
-                )
-            );
+        return projectRepository.findById(projectId)
+            .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
     }
 
-    private Sprint findSprint(
-        UUID projectId,
-        UUID sprintId
-    ) {
-        Sprint sprint = sprintRepository
-            .findById(sprintId)
-            .orElseThrow(() ->
-                new ResourceNotFoundException(
-                    "Sprint not found"
-                )
-            );
+    private Sprint findSprint(UUID projectId, UUID sprintId) {
+        Sprint sprint = sprintRepository.findById(sprintId)
+            .orElseThrow(() -> new ResourceNotFoundException("Sprint not found"));
 
-        if (!sprint.getProject()
-                .getId().equals(projectId)) {
-            throw new ResourceNotFoundException(
-                "Sprint not found in this project"
-            );
+        if (!sprint.getProject().getId().equals(projectId)) {
+            throw new ResourceNotFoundException("Sprint not found in this project");
         }
 
         return sprint;
     }
 
-    private SprintResponse toResponse(Sprint sprint) {
-        List<Task> tasks =
-            taskRepository.findBySprintId(sprint.getId());
+    // FIX: New helper to check workspace membership before sprint operations
+    private void verifyProjectAccess(Project project, User user) {
+        if (!workspaceMemberRepository.existsByWorkspaceIdAndUserId(
+                project.getWorkspace().getId(), user.getId())) {
+            throw new UnauthorizedException("Access denied to this project");
+        }
+    }
 
-        int totalTasks     = tasks.size();
-        int completedTasks = (int) tasks.stream()
+    private SprintResponse toResponse(Sprint sprint) {
+        List<Task> tasks = taskRepository.findBySprintId(sprint.getId());
+
+        int totalTasks      = tasks.size();
+        int completedTasks  = (int) tasks.stream()
             .filter(t -> t.getStatus() == TaskStatus.DONE)
             .count();
 
         int totalPoints = tasks.stream()
-            .mapToInt(t ->
-                t.getStoryPoints() != null
-                    ? t.getStoryPoints() : 0
-            ).sum();
+            .mapToInt(t -> t.getStoryPoints() != null ? t.getStoryPoints() : 0)
+            .sum();
 
         int completedPoints = tasks.stream()
             .filter(t -> t.getStatus() == TaskStatus.DONE)
-            .mapToInt(t ->
-                t.getStoryPoints() != null
-                    ? t.getStoryPoints() : 0
-            ).sum();
+            .mapToInt(t -> t.getStoryPoints() != null ? t.getStoryPoints() : 0)
+            .sum();
 
         int progress = totalTasks == 0
             ? 0
-            : Math.round(
-                (float) completedTasks /
-                totalTasks * 100
-              );
+            : Math.round((float) completedTasks / totalTasks * 100);
 
         return SprintResponse.builder()
             .id(sprint.getId())

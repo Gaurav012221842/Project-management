@@ -5,15 +5,29 @@ import authService from '../../services/api/authService'
 import toast       from 'react-hot-toast'
 
 // Thunks
+export const logoutUser = createAsyncThunk(
+  'auth/logoutUser',
+  async (_, { rejectWithValue }) => {
+    try {
+      await authService.logout()
+      return
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        'Logout failed'
+      )
+    }
+  }
+)
+
 export const login = createAsyncThunk(
   'auth/login',
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await authService.login(
-        credentials
-      )
-      // Backend wraps payload in { success, message, data, timestamp }
-      return response.data?.data ?? response.data
+      const response = await authService.login(credentials)
+      // FIX: axiosInstance already unwraps the envelope → response.data IS the payload
+      return response.data
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
@@ -28,11 +42,9 @@ export const register = createAsyncThunk(
   'auth/register',
   async (userData, { rejectWithValue }) => {
     try {
-      const response = await authService.register(
-        userData
-      )
-      // Backend wraps payload in { success, message, data, timestamp }
-      return response.data?.data ?? response.data
+      const response = await authService.register(userData)
+      // FIX: axiosInstance already unwraps the envelope → response.data IS the payload
+      return response.data
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
@@ -128,6 +140,33 @@ const authSlice = createSlice({
       .addCase(register.rejected, (state, action) => {
         state.loading = false
         state.error   = action.payload
+      })
+      .addCase(logoutUser.pending, (state) => {
+        state.loading = true
+        state.error   = null
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.loading = false
+        state.user    = null
+        state.token   = null
+        localStorage.removeItem('user')
+        localStorage.removeItem('token')
+        localStorage.removeItem('refreshToken')
+        toast.success('Logged out successfully!')
+      })
+      .addCase(logoutUser.rejected, (state, action) => {
+        state.loading = false
+        state.error   = action.payload || 'Logout failed'
+        state.user    = null
+        state.token   = null
+        localStorage.removeItem('user')
+        localStorage.removeItem('token')
+        localStorage.removeItem('refreshToken')
+        toast.error(
+          action.payload
+            ? `Logout failed: ${action.payload}`
+            : 'Logout failed. You have been signed out locally.'
+        )
       })
   }
 })

@@ -28,7 +28,7 @@ import {
 import NotificationBell
   from '../../notification/NotificationBell'
 import {
-  logout,
+  logoutUser,
   selectUser,
 } from '../../../features/auth/authSlice'
 import {
@@ -178,8 +178,8 @@ export default function Navbar({
 
   const breadcrumbs = getBreadcrumbs()
 
-  const handleLogout = () => {
-    dispatch(logout())
+  const handleLogout = async () => {
+    await dispatch(logoutUser())
     navigate('/login')
   }
 

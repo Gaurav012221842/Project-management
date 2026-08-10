@@ -209,6 +209,11 @@ public class MessageServiceImpl
             .content(message.getContent())
             .messageType(message.getType())
             .fileUrl(fileStorageService.resolveFileUrl(message.getFileUrl()))
+            .fileName(
+                message.getFileUrl() != null
+                    ? message.getContent()
+                    : null
+            )
             .workspaceId(message.getWorkspace().getId())
             .sender(
                 UserResponse.builder()

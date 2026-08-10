@@ -117,7 +117,7 @@ const notificationSlice = createSlice({
           icon: getNotificationIcon(
             action.payload.type
           ),
-          duration: 4000,
+          duration: 10000,
         })
       }
     },

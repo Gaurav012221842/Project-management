@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import {
   selectAuth, selectUser, selectToken,
-  logout, login, register, clearError,
+  logout, logoutUser, login, register, clearError,
 } from '../features/auth/authSlice'
 
 export function useAuth() {
@@ -25,8 +25,8 @@ export function useAuth() {
     return result
   }
 
-  const handleLogout = () => {
-    dispatch(logout())
+  const handleLogout = async () => {
+    await dispatch(logoutUser())
     navigate('/login')
   }
 

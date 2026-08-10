@@ -47,4 +47,15 @@ public interface SprintRepository
         SprintStatus status,
         LocalDate endDate
     );
+
+    // FIX: Single query to count completed sprints for all projects owned by a user
+    @Query(
+        "SELECT COUNT(s) FROM Sprint s " +
+        "WHERE s.project.owner.id = :ownerId " +
+        "AND s.status = :status"
+    )
+    Long countByProjectOwnerIdAndStatus(
+        @org.springframework.data.repository.query.Param("ownerId") UUID ownerId,
+        SprintStatus status
+    );
 }

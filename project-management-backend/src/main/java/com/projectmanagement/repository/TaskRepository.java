@@ -2,6 +2,8 @@ package com.projectmanagement.repository;
 
 import com.projectmanagement.entity.Task;
 import com.projectmanagement.enums.TaskStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,6 +18,10 @@ public interface TaskRepository
 
     List<Task> findByProjectIdOrderByPosition(
         UUID projectId
+    );
+
+    Page<Task> findByProjectIdOrderByPosition(
+        UUID projectId, Pageable pageable
     );
 
     List<Task> findByProjectIdAndStatus(

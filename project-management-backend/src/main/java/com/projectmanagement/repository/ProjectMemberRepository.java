@@ -13,4 +13,7 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, UU
     List<ProjectMember> findByProjectId(UUID projectId);
     Optional<ProjectMember> findByProjectIdAndUserId(UUID projectId, UUID userId);
     boolean existsByProjectIdAndUserId(UUID projectId, UUID userId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(pm) FROM ProjectMember pm WHERE pm.project.id = :projectId")
+    Long countByProjectId(UUID projectId);
 }

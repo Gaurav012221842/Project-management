@@ -14,6 +14,7 @@ import com.projectmanagement.exception.custom.ResourceNotFoundException;
 import com.projectmanagement.exception.custom.UnauthorizedException;
 import com.projectmanagement.mapper.ProjectMapper;
 import com.projectmanagement.repository.ActivityLogRepository;
+import com.projectmanagement.repository.ProjectMemberRepository;
 import com.projectmanagement.repository.ProjectRepository;
 import com.projectmanagement.repository.TaskRepository;
 import com.projectmanagement.repository.WorkspaceMemberRepository;
@@ -41,6 +42,8 @@ public class ProjectServiceImpl implements IProjectService {
     private final TaskRepository taskRepository;
     private final ActivityLogRepository activityLogRepository;
     private final ProjectMapper projectMapper;
+    // FIX: Injected to use count queries instead of lazy collection .size()
+    private final ProjectMemberRepository projectMemberRepository;
 
     @Override
     @Transactional
@@ -134,16 +137,19 @@ public class ProjectServiceImpl implements IProjectService {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
         verifyWorkspaceAccess(project.getWorkspace().getId(), user);
-        long done = taskRepository.countByProjectIdAndStatus(id, TaskStatus.DONE);
+        long done       = taskRepository.countByProjectIdAndStatus(id, TaskStatus.DONE);
         long inProgress = taskRepository.countByProjectIdAndStatus(id, TaskStatus.IN_PROGRESS);
-        long todo = taskRepository.countByProjectIdAndStatus(id, TaskStatus.TODO);
+        long todo       = taskRepository.countByProjectIdAndStatus(id, TaskStatus.TODO);
+        // FIX: Use count queries instead of loading entire lazy collections into memory
+        long totalTasks   = taskRepository.countByProjectId(id);
+        long totalMembers = projectMemberRepository.countByProjectId(id);
 
         return ProjectStatsResponse.builder()
-                .totalTasks((long) project.getTasks().size())
+                .totalTasks(totalTasks)
                 .completedTasks(done)
                 .inProgressTasks(inProgress)
                 .todoTasks(todo)
-                .totalMembers((long) project.getMembers().size())
+                .totalMembers(totalMembers)
                 .build();
     }
 

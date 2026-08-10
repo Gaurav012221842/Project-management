@@ -110,12 +110,12 @@ export function useWebSocket({
   // ============================
   // Send Message
   // ============================
-  const sendMessage = useCallback((content, type = 'TEXT') => {
+  const sendMessage = useCallback((content, type = 'TEXT', fileUrl = null, fileName = null) => {
     socketClient.publish(
       SOCKET_EVENTS.CHAT.SEND(
         projectIdRef.current
       ),
-      { content, messageType: type }
+      { content, messageType: type, fileUrl, fileName }
     )
   }, [])
 

@@ -183,7 +183,8 @@ const projectSlice = createSlice({
           state.loading       = false
           state.projects      = action.payload.content
           state.totalPages    = action.payload.totalPages
-          state.currentPage   = action.payload.currentPage
+          // FIX: backend sends 'page' not 'currentPage'
+          state.currentPage   = action.payload.page
           state.totalElements = action.payload.totalElements
         }
       )

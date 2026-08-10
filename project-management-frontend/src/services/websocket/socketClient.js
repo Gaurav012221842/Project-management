@@ -3,7 +3,8 @@ import { Client }   from '@stomp/stompjs'
 import SockJS       from 'sockjs-client'
 
 const BASE_URL = process.env.REACT_APP_API_URL ||
-                 'https://project-management-ac99.onrender.com'
+                //  'https://project-management-ac99.onrender.com'
+                  'http://localhost:8081'
 
 class SocketClient {
   constructor() {
@@ -17,6 +18,23 @@ class SocketClient {
   // ============================
   connect(onConnect, onDisconnect) {
     const token = localStorage.getItem('token')
+
+    if (this.client?.connected) {
+      if (onConnect) onConnect()
+      return
+    }
+
+    if (this.client?.active && !this.client?.connected) {
+      // Reuse the existing activating client if it's still connecting.
+      if (onConnect) {
+        const originalOnConnect = this.client.onConnect
+        this.client.onConnect = (frame) => {
+          if (originalOnConnect) originalOnConnect(frame)
+          onConnect(frame)
+        }
+      }
+      return
+    }
 
     this.client = new Client({
       webSocketFactory: () =>

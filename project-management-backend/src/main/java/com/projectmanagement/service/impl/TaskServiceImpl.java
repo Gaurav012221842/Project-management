@@ -84,24 +84,24 @@ public class TaskServiceImpl implements ITaskService {
         return taskMapper.toResponse(saved);
     }
 
+    // FIX: Use DB-level pagination instead of loading all tasks into memory
     @Override
     @Cacheable(value = "tasks", key = "'project:' + #projectId + ':page:' + #pageable.pageNumber + ':size:' + #pageable.pageSize + ':sort:' + #pageable.sort.toString() + ':user:' + #user.id")
     public PageResponse<TaskResponse> getTasks(UUID projectId, User user, Pageable pageable) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", projectId));
         verifyProjectAccess(project, user);
-        List<Task> tasks = taskRepository.findByProjectIdOrderByPosition(projectId);
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), tasks.size());
-        List<TaskResponse> content = tasks.subList(start, end).stream().map(taskMapper::toResponse).toList();
+
+        Page<Task> taskPage = taskRepository.findByProjectIdOrderByPosition(projectId, pageable);
+
         return PageResponse.<TaskResponse>builder()
-                .content(content)
-                .page(pageable.getPageNumber())
-                .size(pageable.getPageSize())
-                .totalElements(tasks.size())
-                .totalPages((int) Math.ceil((double) tasks.size() / pageable.getPageSize()))
-                .first(pageable.getPageNumber() == 0)
-                .last(end == tasks.size())
+                .content(taskPage.getContent().stream().map(taskMapper::toResponse).toList())
+                .page(taskPage.getNumber())
+                .size(taskPage.getSize())
+                .totalElements(taskPage.getTotalElements())
+                .totalPages(taskPage.getTotalPages())
+                .first(taskPage.isFirst())
+                .last(taskPage.isLast())
                 .build();
     }
 
@@ -128,6 +128,8 @@ public class TaskServiceImpl implements ITaskService {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task", "id", id));
         verifyProjectAccess(task.getProject(), user);
+
+        String oldTitle = task.getTitle();
         if (request.getTitle() != null) task.setTitle(request.getTitle());
         if (request.getDescription() != null) task.setDescription(request.getDescription());
         if (request.getStatus() != null) task.setStatus(request.getStatus());
@@ -145,7 +147,11 @@ public class TaskServiceImpl implements ITaskService {
                     .orElseThrow(() -> new ResourceNotFoundException("User", "id", request.getAssigneeId()));
             task.setAssignee(assignee);
         }
-        return taskMapper.toResponse(taskRepository.save(task));
+
+        Task saved = taskRepository.save(task);
+        // FIX: Log activity for task updates
+        activityLogService.log(task.getProject(), user, "UPDATED", "TASK", saved.getId(), oldTitle, saved.getTitle());
+        return taskMapper.toResponse(saved);
     }
 
     @Override
@@ -162,9 +168,16 @@ public class TaskServiceImpl implements ITaskService {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task", "id", id));
         verifyProjectAccess(task.getProject(), user);
+
+        String oldStatus = task.getStatus() != null ? task.getStatus().name() : null;
         task.setStatus(request.getStatus());
         if (request.getPosition() != null) task.setPosition(request.getPosition());
-        return taskMapper.toResponse(taskRepository.save(task));
+
+        Task saved = taskRepository.save(task);
+        // FIX: Log activity for status changes
+        activityLogService.log(task.getProject(), user, "STATUS_CHANGED", "TASK", saved.getId(), oldStatus,
+                request.getStatus() != null ? request.getStatus().name() : null);
+        return taskMapper.toResponse(saved);
     }
 
     @Override
@@ -181,13 +194,18 @@ public class TaskServiceImpl implements ITaskService {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task", "id", id));
         verifyProjectAccess(task.getProject(), user);
+
+        String oldAssignee = task.getAssignee() != null ? task.getAssignee().getName() : "Unassigned";
         if (request.getAssigneeId() != null) {
             User assignee = userRepository.findById(request.getAssigneeId())
                     .orElseThrow(() -> new ResourceNotFoundException("User", "id", request.getAssigneeId()));
             task.setAssignee(assignee);
             notificationService.sendTaskAssignedNotification(assignee, task.getTitle(), task.getId());
+            // FIX: Log activity for task assignment
+            activityLogService.log(task.getProject(), user, "ASSIGNED", "TASK", task.getId(), oldAssignee, assignee.getName());
         } else {
             task.setAssignee(null);
+            activityLogService.log(task.getProject(), user, "UNASSIGNED", "TASK", task.getId(), oldAssignee, "Unassigned");
         }
         return taskMapper.toResponse(taskRepository.save(task));
     }
@@ -206,6 +224,8 @@ public class TaskServiceImpl implements ITaskService {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task", "id", id));
         verifyProjectAccess(task.getProject(), user);
+        // FIX: Log activity before deletion (capture values while entity is still available)
+        activityLogService.log(task.getProject(), user, "DELETED", "TASK", task.getId(), task.getTitle(), null);
         taskRepository.delete(task);
     }
 

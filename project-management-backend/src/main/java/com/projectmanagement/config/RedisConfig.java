@@ -85,7 +85,7 @@ public class RedisConfig {
                         redisPort,
                         redisSslEnabled,
                         mask(redisUsername),
-                        pong
+                        mask(pong)
                 );
             } catch (Exception ex) {
                 log.error(

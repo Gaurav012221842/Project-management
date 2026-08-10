@@ -10,7 +10,7 @@ import {
   PaperAirplaneIcon,
   PaperClipIcon,
   FaceSmileIcon,
-  PhotoIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline'
 
 // Simple Emoji List
@@ -22,8 +22,13 @@ const EMOJIS = [
 
 export default function ChatInput({
   onSendMessage,
+  onUploadFile,
   onTyping,
   isConnected,
+  attachedFile,
+  isUploading,
+  uploadProgress,
+  onRemoveAttachment,
 }) {
   const [message, setMessage]       = useState('')
   const [showEmoji, setShowEmoji]   = useState(false)
@@ -47,11 +52,19 @@ export default function ChatInput({
   // ============================
   const handleSend = useCallback(() => {
     const trimmed = message.trim()
-    if (!trimmed || !isConnected) return
-    onSendMessage(trimmed)
+    const hasAttachment = Boolean(attachedFile?.fileUrl)
+    if ((!trimmed && !hasAttachment) || !isConnected) return
+
+    onSendMessage(
+      trimmed,
+      attachedFile?.messageType,
+      attachedFile?.fileUrl,
+      attachedFile?.fileName
+    )
+
     setMessage('')
     textareaRef.current?.focus()
-  }, [message, isConnected, onSendMessage])
+  }, [message, isConnected, onSendMessage, attachedFile])
 
   // ============================
   // Key Handler
@@ -92,14 +105,10 @@ export default function ChatInput({
   // ============================
   const handleFileSelect = useCallback((e) => {
     const file = e.target.files[0]
-    if (!file) return
-    const isImage = file.type.startsWith('image/')
-    onSendMessage(
-      file.name,
-      isImage ? 'IMAGE' : 'FILE'
-    )
+    if (!file || !onUploadFile) return
+    onUploadFile(file)
     e.target.value = ''
-  }, [onSendMessage])
+  }, [onUploadFile])
 
   // ============================
   // Drag & Drop
@@ -117,17 +126,14 @@ export default function ChatInput({
     e.preventDefault()
     setIsDragging(false)
     const file = e.dataTransfer.files[0]
-    if (file) {
-      const isImage = file.type.startsWith('image/')
-      onSendMessage(
-        file.name,
-        isImage ? 'IMAGE' : 'FILE'
-      )
+    if (file && onUploadFile) {
+      onUploadFile(file)
     }
   }
 
   const canSend =
-    message.trim().length > 0 && isConnected
+    isConnected &&
+    (message.trim().length > 0 || Boolean(attachedFile?.fileUrl))
 
   return (
     <div
@@ -224,32 +230,61 @@ export default function ChatInput({
         </div>
 
         {/* Textarea */}
-        <div className="flex-1 relative">
-          <textarea
-            ref={textareaRef}
-            value={message}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            placeholder={
-              isConnected
-                ? 'Type a message...'
-                : 'Connecting...'
-            }
-            disabled={!isConnected}
-            rows={1}
-            className="w-full resize-none px-4 py-3
-                        bg-gray-50 border border-gray-200
-                        rounded-2xl text-sm
-                        placeholder-gray-400
-                        focus:outline-none
-                        focus:ring-2
-                        focus:ring-indigo-500
-                        focus:border-transparent
-                        disabled:opacity-50
-                        disabled:cursor-not-allowed
-                        max-h-[120px]
-                        leading-relaxed"
-          />
+        <div className="flex-1">
+          <div className="relative rounded-2xl border border-gray-200 bg-gray-50 px-3 py-2">
+            {attachedFile && (
+              <div className="mb-2 rounded-2xl border border-gray-200 bg-white px-3 py-2">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {attachedFile.fileName}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {isUploading
+                        ? `Uploading ${uploadProgress}%`
+                        : attachedFile.messageType === 'IMAGE'
+                          ? 'Image ready to send'
+                          : 'File ready to send'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onRemoveAttachment}
+                    className="p-1 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                  >
+                    <XMarkIcon className="w-4 h-4" />
+                  </button>
+                </div>
+                {isUploading ? (
+                  <div className="mt-2 h-1 overflow-hidden rounded-full bg-gray-200">
+                    <div
+                      className="h-full rounded-full bg-indigo-600"
+                      style={{ width: `${uploadProgress}%` }}
+                    />
+                  </div>
+                ) : null}
+              </div>
+            )}
+
+            <textarea
+              ref={textareaRef}
+              value={message}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
+              placeholder={
+                isConnected
+                  ? 'Type a message...'
+                  : 'Connecting...'
+              }
+              disabled={!isConnected}
+              rows={1}
+              className="w-full resize-none bg-transparent px-1 py-3
+                          text-sm placeholder-gray-400
+                          focus:outline-none focus:ring-0
+                          disabled:opacity-50 disabled:cursor-not-allowed
+                          max-h-[120px] leading-relaxed"
+            />
+          </div>
         </div>
 
         {/* Send Button */}

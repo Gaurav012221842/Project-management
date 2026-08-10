@@ -132,29 +132,56 @@ public class WorkspaceServiceImpl implements IWorkspaceService {
             @CacheEvict(value = "users", allEntries = true)
     })
     public void addMember(UUID workspaceId, AddMemberRequest request, User requester) {
-        findWorkspaceAndVerifyAccess(workspaceId, requester);
-        User newMember = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + request.getEmail()));
+        Workspace workspace = findWorkspaceAndVerifyAccess(workspaceId, requester);
+        // FIX: Delegate to shared helper to eliminate duplicate logic with inviteMember
+        doAddMember(workspace, request.getEmail(), request.getRole(), requester, false);
+    }
 
-        if (memberRepository.existsByWorkspaceIdAndUserId(workspaceId, newMember.getId())) {
+    @Override
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "workspaces", allEntries = true),
+            @CacheEvict(value = "projects", allEntries = true),
+            @CacheEvict(value = "projectStats", allEntries = true),
+            @CacheEvict(value = "tasks", allEntries = true),
+            @CacheEvict(value = "sprints", allEntries = true),
+            @CacheEvict(value = "analytics", allEntries = true),
+            @CacheEvict(value = "users", allEntries = true)
+    })
+    public void inviteMember(UUID workspaceId, String email, User requester) {
+        Workspace workspace = findWorkspaceAndVerifyAccess(workspaceId, requester);
+        // FIX: Delegate to shared helper with MEMBER role and invite notification
+        doAddMember(workspace, email, WorkspaceRole.MEMBER, requester, true);
+    }
+
+    /**
+     * FIX: Shared private helper that merges the duplicate logic from addMember() and inviteMember().
+     * @param sendInviteNotification if true, sends workspace_invite; otherwise sends workspace_member_added.
+     */
+    private void doAddMember(Workspace workspace, String email, WorkspaceRole role,
+                              User requester, boolean sendInviteNotification) {
+        User userToAdd = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+
+        if (memberRepository.existsByWorkspaceIdAndUserId(workspace.getId(), userToAdd.getId())) {
             throw new DuplicateResourceException("User is already a member");
         }
 
-        Workspace workspace = workspaceRepository.findById(workspaceId).orElseThrow();
         WorkspaceMember member = WorkspaceMember.builder()
                 .workspace(workspace)
-                .user(newMember)
-                .role(request.getRole())
+                .user(userToAdd)
+                .role(role)
                 .joinedAt(LocalDateTime.now())
                 .build();
         memberRepository.save(member);
 
-        notificationService.sendWorkspaceMemberAddedNotification(
-                newMember,
-                requester.getName(),
-                workspace.getName(),
-                workspace.getId()
-        );
+        if (sendInviteNotification) {
+            notificationService.sendWorkspaceInviteNotification(
+                    userToAdd, requester.getName(), workspace.getName(), workspace.getId());
+        } else {
+            notificationService.sendWorkspaceMemberAddedNotification(
+                    userToAdd, requester.getName(), workspace.getName(), workspace.getId());
+        }
     }
 
     @Override
@@ -181,47 +208,4 @@ public class WorkspaceServiceImpl implements IWorkspaceService {
         }
         return workspace;
     }
-    @Override
-    @Transactional
-    @Caching(evict = {
-            @CacheEvict(value = "workspaces", allEntries = true),
-            @CacheEvict(value = "projects", allEntries = true),
-            @CacheEvict(value = "projectStats", allEntries = true),
-            @CacheEvict(value = "tasks", allEntries = true),
-            @CacheEvict(value = "sprints", allEntries = true),
-            @CacheEvict(value = "analytics", allEntries = true),
-            @CacheEvict(value = "users", allEntries = true)
-    })
-    public void inviteMember(UUID workspaceId, String email, User requester) {
-
-        Workspace workspace = findWorkspaceAndVerifyAccess(workspaceId, requester);
-
-        User userToInvite = userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "User not found with email: " + email));
-
-        if (memberRepository.existsByWorkspaceIdAndUserId(
-                workspaceId,
-                userToInvite.getId())) {
-            throw new DuplicateResourceException("User is already a member");
-        }
-
-        WorkspaceMember member = WorkspaceMember.builder()
-                .workspace(workspace)
-                .user(userToInvite)
-                .role(WorkspaceRole.MEMBER)
-                .joinedAt(LocalDateTime.now())
-                .build();
-
-        memberRepository.save(member);
-
-        notificationService.sendWorkspaceInviteNotification(
-                userToInvite,
-                requester.getName(),
-                workspace.getName(),
-                workspace.getId()
-        );
-    }
-
 }

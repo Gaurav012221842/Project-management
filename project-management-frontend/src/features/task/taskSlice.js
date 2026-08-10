@@ -253,6 +253,7 @@ const taskSlice = createSlice({
     taskLoading:     false,
     createLoading:   false,
     updateLoading:   false,
+    deleteLoading:   false,  // FIX: Added to track delete operation loading state
     commentLoading:  false,
     uploadLoading:   false,
     error:           null,
@@ -391,9 +392,13 @@ const taskSlice = createSlice({
       })
 
       // Delete
+      .addCase(deleteTask.pending, (state) => {
+        state.deleteLoading = true
+      })
       .addCase(
         deleteTask.fulfilled,
         (state, action) => {
+          state.deleteLoading = false
           state.tasks = state.tasks.filter(
             t => t.id !== action.payload
           )
@@ -403,6 +408,15 @@ const taskSlice = createSlice({
             state.selectedTask = null
           }
           toast.success('Task deleted!')
+        }
+      )
+      // FIX: Added missing rejected handler — user now sees an error toast on failure
+      .addCase(
+        deleteTask.rejected,
+        (state, action) => {
+          state.deleteLoading = false
+          state.error = action.payload
+          toast.error(action.payload || 'Failed to delete task')
         }
       )
 

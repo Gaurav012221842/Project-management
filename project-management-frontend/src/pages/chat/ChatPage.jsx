@@ -1,7 +1,7 @@
 // src/pages/chat/ChatPage.jsx
-import { useState }               from 'react'
-import { useParams }              from 'react-router-dom'
-import { motion }                 from 'framer-motion'
+import { useState, useEffect } from 'react'
+import { useParams, useLocation } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import {
   ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline'
@@ -9,7 +9,17 @@ import ChatPanel from '../../components/chat/ChatPanel'
 
 export default function ChatPage() {
   const { projectId } = useParams()
+  const location = useLocation()
   const [isOpen, setIsOpen] = useState(true)
+  const [incomingCall, setIncomingCall] = useState(null)
+
+  useEffect(() => {
+    if (location.state?.incomingCall) {
+      setIsOpen(true)
+      setIncomingCall(location.state.incomingCall)
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, [location])
 
   return (
     <div className="min-h-screen bg-gray-50
@@ -38,6 +48,7 @@ export default function ChatPage() {
       <ChatPanel
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
+        incomingCall={incomingCall}
       />
     </div>
   )
