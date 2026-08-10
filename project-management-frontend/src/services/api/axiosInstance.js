@@ -2,8 +2,8 @@
 import axios from 'axios'
 
 const api = axios.create({
-  // baseURL: process.env.REACT_APP_API_URL || 'https://project-management-ac99.onrender.com',
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8081',
+  baseURL: process.env.REACT_APP_API_URL || 'https://project-management-ac99.onrender.com',
+  // baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8081',
   withCredentials: false,
 })
 

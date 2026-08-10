@@ -3,8 +3,8 @@ import { Client }   from '@stomp/stompjs'
 import SockJS       from 'sockjs-client'
 
 const BASE_URL = process.env.REACT_APP_API_URL ||
-                //  'https://project-management-ac99.onrender.com'
-                  'http://localhost:8081'
+                 'https://project-management-ac99.onrender.com'
+                  // 'http://localhost:8081'
 
 class SocketClient {
   constructor() {
