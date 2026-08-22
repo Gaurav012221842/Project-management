@@ -32,13 +32,15 @@ public class SecurityConfig {
     private final CustomAuthEntryPoint authEntryPoint;
 
     private static final String[] WHITE_LIST = {
+        "/health",
+        "/api/v1/health",
         "/api/v1/auth/**",
         "/v3/api-docs/**",
         "/swagger-ui/**",
         "/swagger-ui.html",
         "/ws/**",
         "/uploads/**",
-        "/actuator/health"
+        "/actuator/**"
     };
 
     @Bean
