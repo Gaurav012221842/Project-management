@@ -1,6 +1,8 @@
 package com.projectmanagement.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -11,6 +13,7 @@ import org.thymeleaf.context.Context;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailServiceImpl {
@@ -57,8 +60,8 @@ public class EmailServiceImpl {
             helper.setSubject(subject);
             helper.setText(body, true);
             mailSender.send(message);
-        } catch (MessagingException e) {
-            // Log error, don't fail the business operation
+        } catch (MessagingException | MailException e) {
+            log.error("Failed to send email to {}: {}", to, e.getMessage());
         }
     }
 }
